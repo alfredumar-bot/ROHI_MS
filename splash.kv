@@ -1,0 +1,40 @@
+<SplashScreen>:
+
+    MDScreen:
+        md_bg_color: 1, 1, 1, 1
+
+        MDBoxLayout:
+            orientation: "vertical"
+            spacing: "20dp"
+            padding: "24dp"
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+            Widget:
+
+            Image:
+                source: "rohi_logo.png"
+                size_hint_y: None
+                height: "180dp"
+                allow_stretch: True
+                keep_ratio: True
+
+            MDLabel:
+                text: "Restoration of Hope Initiative"
+                halign: "center"
+                bold: True
+                theme_text_color: "Primary"
+
+            MDLabel:
+                text: "ROHI Attendance System"
+                halign: "center"
+
+            MDLabel:
+                id: loading
+                text: "Loading..."
+                halign: "center"
+                theme_text_color: "Hint"
+
+            MDProgressBar:
+                value: 100
+
+            Widget:
