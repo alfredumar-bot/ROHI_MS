@@ -1,0 +1,211 @@
+<TimesheetScreen>:
+    MDScreen:
+        md_bg_color: 0.95, 0.95, 0.95, 1
+
+        MDBoxLayout:
+            orientation: 'vertical'
+
+            MDTopAppBar:
+                title: "Timesheet"
+                elevation: 2
+                md_bg_color: 0.13, 0.40, 0.16, 1
+                left_action_items: [["arrow-left", lambda x: app.open_dashboard()]]
+
+            ScrollView:
+                do_scroll_x: False
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(16)
+                    spacing: dp(16)
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    # ---------------- Staff Header ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(6)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            id: timesheet_name
+                            text: "Name: -"
+                            bold: True
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: timesheet_position
+                            text: "Position: -"
+                            font_style: "Caption"
+                            adaptive_height: True
+
+                    # ---------------- Period Selector ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            text: "Timesheet Period"
+                            font_style: "Subtitle1"
+                            bold: True
+                            adaptive_height: True
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDLabel:
+                                text: "Month:"
+                                size_hint_x: 0.25
+                                adaptive_height: True
+                            Spinner:
+                                id: timesheet_month_spinner
+                                text: "January"
+                                values: ["January","February","March","April","May","June","July","August","September","October","November","December"]
+                                size_hint_y: None
+                                height: dp(40)
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDLabel:
+                                text: "Year:"
+                                size_hint_x: 0.25
+                                adaptive_height: True
+                            Spinner:
+                                id: timesheet_year_spinner
+                                text: "2026"
+                                values: ["2023","2024","2025","2026","2027"]
+                                size_hint_y: None
+                                height: dp(40)
+
+                        MDRaisedButton:
+                            text: "LOAD TIMESHEET"
+                            pos_hint: {'center_x': 0.5}
+                            on_release: app.generate_timesheet()
+
+                    # ---------------- Daily Grid ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(8)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            text: "Daily Timesheet"
+                            font_style: "Subtitle1"
+                            bold: True
+                            adaptive_height: True
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(4)
+                            adaptive_height: True
+                            MDLabel:
+                                text: "Pay Period Date"
+                                bold: True
+                                font_style: "Caption"
+                            MDLabel:
+                                text: "Day"
+                                bold: True
+                                font_style: "Caption"
+                            MDLabel:
+                                text: "Hours Worked"
+                                bold: True
+                                font_style: "Caption"
+
+                        MDSeparator:
+
+                        MDBoxLayout:
+                            id: timesheet_rows_container
+                            orientation: 'vertical'
+                            spacing: dp(4)
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                    # ---------------- Signature ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            text: "Staff Signature"
+                            font_style: "Subtitle1"
+                            bold: True
+                            adaptive_height: True
+
+                        FitImage:
+                            id: timesheet_signature_preview
+                            source: "default_avatar.png"
+                            size_hint: None, None
+                            size: dp(160), dp(70)
+                            pos_hint: {'center_x': 0.5}
+
+                        MDRaisedButton:
+                            text: "UPLOAD SIGNATURE FROM GALLERY"
+                            pos_hint: {'center_x': 0.5}
+                            on_release: app.upload_signature()
+
+                    # ---------------- Export ----------------
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: dp(50)
+
+                        MDRaisedButton:
+                            text: "EXPORT TIMESHEET (EXCEL)"
+                            font_size: "16sp"
+                            size_hint_x: 1
+                            height: dp(50)
+                            md_bg_color: 0, 0.6, 0.2, 1
+                            on_release: app.export_timesheet_excel()
+
+                        MDIconButton:
+                            icon: "cloud-upload"
+                            md_bg_color: 0.13, 0.40, 0.16, 1
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            on_release: app.send_timesheet_to_excel()
+ 
+                        MDIconButton:
+                            icon: "email-outline"
+                            md_bg_color: 0.13, 0.40, 0.16, 1
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            tooltip_text: "Email generated Timesheet"
+                            on_release: app.email_timesheet_export()
+
+                    MDRaisedButton:
+                        text: "SEND TIMESHEET TO GOOGLE EXCEL"
+                        size_hint_x: 1
+                        height: dp(50)
+                        md_bg_color: 0.13, 0.40, 0.16, 1
+                        on_release: app.send_timesheet_to_excel()
+
+                    MDLabel:
+                        id: timesheet_status_label
+                        text: ""
+                        font_style: "Caption"
+                        theme_text_color: "Secondary"
+                        adaptive_height: True

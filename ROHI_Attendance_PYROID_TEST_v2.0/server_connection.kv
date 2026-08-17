@@ -1,0 +1,439 @@
+<ServerConnectionScreen>:
+    MDScreen:
+        md_bg_color: 0.95, 0.95, 0.95, 1
+
+        MDBoxLayout:
+            orientation: 'vertical'
+
+            MDTopAppBar:
+                title: "Server Connection"
+                elevation: 2
+                md_bg_color: 0.13, 0.40, 0.16, 1
+                left_action_items: [["arrow-left", lambda x: app.open_settings()]]
+
+            ScrollView:
+                do_scroll_x: False
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(16)
+                    spacing: dp(16)
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    # ---------------- Status Card ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(6)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(10)
+                            adaptive_height: True
+
+                            MDLabel:
+                                text: "Connection Status:"
+                                bold: True
+                                adaptive_size: True
+                                valign: "middle"
+
+                            Widget:
+                                size_hint_x: None
+                                width: dp(1)
+
+                            MDCard:
+                                id: connection_status_badge
+                                orientation: 'horizontal'
+                                size_hint: None, None
+                                size: self.minimum_width, dp(30)
+                                padding: [dp(10), dp(4)]
+                                spacing: dp(6)
+                                radius: [15,]
+                                elevation: 0
+                                md_bg_color: 0.93, 0.85, 0.85, 1
+
+                                MDIcon:
+                                    id: connection_status_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.6, 0.15, 0.15, 1
+                                    size_hint: None, None
+                                    size: dp(18), dp(18)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: connection_status_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.6, 0.15, 0.15, 1
+                                    adaptive_size: True
+                                    valign: "middle"
+                                    pos_hint: {"center_y": .5}
+
+                        MDLabel:
+                            id: last_sync_label
+                            text: "Last Sync: Never"
+                            font_style: "Caption"
+                            theme_text_color: "Secondary"
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: sync_result_label
+                            text: ""
+                            font_style: "Caption"
+                            theme_text_color: "Secondary"
+                            adaptive_height: True
+
+                    # ---------------- Connection Fields ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(12)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDTextField:
+                            id: server_name_field
+                            hint_text: "Server Name"
+
+                        MDTextField:
+                            id: host_field
+                            hint_text: "Host / IP"
+
+                        MDTextField:
+                            id: port_field
+                            hint_text: "Port"
+                            input_filter: "int"
+                            text: "5432"
+
+                        MDTextField:
+                            id: dbname_field
+                            hint_text: "Database Name"
+
+                        MDTextField:
+                            id: username_field
+                            hint_text: "Username"
+
+                        MDTextField:
+                            id: password_field
+                            hint_text: "Password"
+                            password: True
+
+                        MDTextField:
+                            id: sslmode_field
+                            hint_text: "SSL Mode (disable / allow / prefer / require)"
+                            text: "prefer"
+
+                    # ---------------- Excel Auto-Sync Connections ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            text: "Excel Auto-Sync Connections"
+                            font_style: "Subtitle1"
+                            bold: True
+                            adaptive_height: True
+
+                        MDLabel:
+                            text: "The Google link is the destination. The upload endpoint is the secure bridge that lets ROHI send files/data automatically without opening Google or asking the user to choose an account."
+                            font_style: "Caption"
+                            theme_text_color: "Secondary"
+                            adaptive_height: True
+                            text_size: self.width, None
+
+                        MDTextField:
+                            id: attendance_link_field
+                            hint_text: "ROHI Attendance Report link"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDCard:
+                                id: attendance_connection_badge
+                                orientation: "horizontal"
+                                size_hint_x: 0.42
+                                size_hint_y: None
+                                height: dp(36)
+                                padding: [dp(8), dp(4)]
+                                radius: [18,]
+                                elevation: 0
+                                md_bg_color: 0.96, 0.87, 0.87, 1
+
+                                MDIcon:
+                                    id: attendance_connection_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    size_hint: None, None
+                                    size: dp(20), dp(20)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: attendance_connection_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    adaptive_height: True
+                                    pos_hint: {"center_y": .5}
+
+                            MDRaisedButton:
+                                text: "CONNECT ATTENDANCE"
+                                size_hint_x: 0.58
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.connect_excel_report("attendance")
+
+                        MDTextField:
+                            id: attendance_endpoint_field
+                            hint_text: "Attendance automatic upload endpoint (required for Send to Google)"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDTextField:
+                            id: timesheet_link_field
+                            hint_text: "ROHI Timesheet folder/link"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDCard:
+                                id: timesheet_connection_badge
+                                orientation: "horizontal"
+                                size_hint_x: 0.42
+                                size_hint_y: None
+                                height: dp(36)
+                                padding: [dp(8), dp(4)]
+                                radius: [18,]
+                                elevation: 0
+                                md_bg_color: 0.96, 0.87, 0.87, 1
+
+                                MDIcon:
+                                    id: timesheet_connection_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    size_hint: None, None
+                                    size: dp(20), dp(20)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: timesheet_connection_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    adaptive_height: True
+                                    pos_hint: {"center_y": .5}
+
+                            MDRaisedButton:
+                                text: "CONNECT TIMESHEET"
+                                size_hint_x: 0.58
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.connect_excel_report("timesheet")
+
+                        MDTextField:
+                            id: timesheet_endpoint_field
+                            hint_text: "Timesheet automatic upload endpoint (required for Send to Google)"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDTextField:
+                            id: leave_link_field
+                            hint_text: "ROHI Leave Management folder/link"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDCard:
+                                id: leave_connection_badge
+                                orientation: "horizontal"
+                                size_hint_x: 0.42
+                                size_hint_y: None
+                                height: dp(36)
+                                padding: [dp(8), dp(4)]
+                                radius: [18,]
+                                elevation: 0
+                                md_bg_color: 0.96, 0.87, 0.87, 1
+
+                                MDIcon:
+                                    id: leave_connection_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    size_hint: None, None
+                                    size: dp(20), dp(20)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: leave_connection_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    adaptive_height: True
+                                    pos_hint: {"center_y": .5}
+
+                            MDRaisedButton:
+                                text: "CONNECT LEAVE"
+                                size_hint_x: 0.58
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.connect_excel_report("leave")
+
+                        MDTextField:
+                            id: leave_endpoint_field
+                            hint_text: "Leave automatic upload endpoint (required for Send to Google)"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDTextField:
+                            id: staff_link_field
+                            hint_text: "ROHI Complete Staff on IMS link"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDCard:
+                                id: staff_connection_badge
+                                orientation: "horizontal"
+                                size_hint_x: 0.42
+                                size_hint_y: None
+                                height: dp(36)
+                                padding: [dp(8), dp(4)]
+                                radius: [18,]
+                                elevation: 0
+                                md_bg_color: 0.96, 0.87, 0.87, 1
+
+                                MDIcon:
+                                    id: staff_connection_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    size_hint: None, None
+                                    size: dp(20), dp(20)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: staff_connection_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    adaptive_height: True
+                                    pos_hint: {"center_y": .5}
+
+                            MDRaisedButton:
+                                text: "CONNECT STAFF"
+                                size_hint_x: 0.58
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.connect_excel_report("staff")
+
+                        MDTextField:
+                            id: staff_endpoint_field
+                            hint_text: "Staff automatic upload endpoint (required for Send to Google)"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDLabel:
+                            id: excel_sync_result_label
+                            text: "Links are preloaded from the supplied auto-sync workbook."
+                            font_style: "Caption"
+                            theme_text_color: "Secondary"
+                            adaptive_height: True
+                            text_size: self.width, None
+
+                        MDBoxLayout:
+                            spacing: dp(8)
+                            size_hint_y: None
+                            height: dp(48)
+
+                            MDRaisedButton:
+                                text: "SAVE LINKS"
+                                size_hint_x: 0.5
+                                md_bg_color: 0.4, 0.4, 0.4, 1
+                                on_release: app.save_excel_sync_settings()
+
+                            MDRaisedButton:
+                                text: "SAVE ALL LINKS"
+                                size_hint_x: 0.5
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.save_excel_sync_settings()
+
+                    # ---------------- Actions ----------------
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+
+                        MDRaisedButton:
+                            id: test_connection_btn
+                            text: "TEST CONNECTION"
+                            size_hint_x: 1
+                            md_bg_color: 0.25, 0.45, 0.75, 1
+                            on_release: app.server_connection_test()
+
+                        MDRaisedButton:
+                            id: save_settings_btn
+                            text: "SAVE SETTINGS"
+                            size_hint_x: 1
+                            md_bg_color: 0.4, 0.4, 0.4, 1
+                            on_release: app.server_connection_save()
+
+                        MDRaisedButton:
+                            id: connect_btn
+                            text: "CONNECT"
+                            size_hint_x: 1
+                            md_bg_color: 0.13, 0.40, 0.16, 1
+                            on_release: app.server_connection_connect()
+
+                        MDRaisedButton:
+                            id: disconnect_btn
+                            text: "DISCONNECT"
+                            size_hint_x: 1
+                            md_bg_color: 0.8, 0.1, 0.1, 1
+                            on_release: app.server_connection_disconnect()
+
+                        MDRaisedButton:
+                            id: sync_now_btn
+                            text: "SYNCHRONIZE NOW"
+                            size_hint_x: 1
+                            md_bg_color: 0.85, 0.65, 0.13, 1
+                            on_release: app.server_connection_sync_now()

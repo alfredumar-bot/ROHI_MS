@@ -1,0 +1,61 @@
+ROHI Attendance App - Updated Build
+
+Key changes:
+1. Borno State Office GPS: 11.797352, 13.143040
+2. Adamawa HQ GPS: 9.2781640, 12.432640
+3. Timesheet hours: Monday-Thursday = 8 hours; Friday = 4 hours.
+4. Timesheet Excel export now populates the supplied Corrected Timesheet.xlsx
+   template so the supplied logo, borders, column widths, row heights and
+   merged cells are preserved.
+5. Staff Registration Excel export now uses the supplied Rohi_Staff on IMS.xlsx
+   template and exports all local staff records while preserving its layout.
+6. Attendance Excel export uses the supplied Rohi_Attendance Report.xlsx template.
+7. Signature and staff-photo selection now uses Plyer's stable file chooser,
+   reducing Android activity-result logouts/crashes. Images are resized before
+   storage/export to improve speed.
+8. Android email/share code uses android.os.Build$VERSION correctly, fixing the
+   Build.VERSION error.
+9. Login session is persisted and restored after Android activity/process
+   recreation; it is cleared only by the LOG OUT button.
+10. Server Connection now includes Excel Auto-Sync Connections for Attendance,
+    Timesheet, Leave and Staff links, with Save/Connect/Open buttons.
+11. Dashboard shows Excel Sync connection status.
+12. Staff Excel mirror is scheduled every 24 hours and is also generated after
+    registration/profile edits.
+13. Attendance Excel mirror is scheduled at 5:00 PM each day and catches up on
+    the next app launch if the phone was offline at 5 PM.
+14. Exported Timesheet/Staff/Attendance workbooks can be sent to configured HTTP
+    upload endpoints in the background without blocking the UI.
+15. excel_sync_server.py is included as an optional server receiver. It stores
+    uploads in separate folders that can be placed inside a Google Drive/
+    OneDrive sync directory.
+
+Important:
+A Google Drive folder URL is a browse/share link, not a direct upload API.
+For actual automatic upload to those folders, run the included server receiver
+(or use an authenticated Drive API/Apps Script endpoint) and put its /upload
+URL into the corresponding upload endpoint field in the app.
+
+
+ROHI Attendance App v1.4 corrections:
+15. Borno State Office geofence target is fixed at 11.797352, 13.143040 with a 100 m radius.
+16. Adamawa HQ geofence target is fixed at 9.2781640, 12.432640 with a 100 m radius.
+17. Check-In now explicitly requests Android runtime location permission before starting a fresh GPS fix and waits up to 15 seconds for a live coordinate.
+18. Server Connection Google Form section has been removed.
+19. The four Excel report links now have individual CONNECT buttons and green/red status badges.
+20. Each report link is tested in a background thread so the UI does not freeze.
+21. Staff registration and Timesheet Excel auto-sync checks now run every 1 minute; registration/profile edits still trigger an immediate background staff export.
+22. Background auto-sync uses stable workbook names instead of creating a new file every minute.
+23. Dashboard Excel Sync status now reports how many of the four report links are connected.
+
+GPS/Pydroid fix: Borno 11.797352,13.143040 and Adamawa 9.2781640,12.432640. Added Android LocationManager fallback.
+
+
+VERSION 1.6 - 3-MINUTE AUTO-SYNC
+- PostgreSQL/local database background sync interval: every 3 minutes (180 seconds).
+- Staff Registration Excel sync: every 3 minutes.
+- Attendance Excel sync: every 3 minutes (replaces the previous 5 PM-only schedule).
+- Timesheet Excel sync: every 3 minutes.
+- Leave Excel sync: every 3 minutes while a user is logged in.
+- Excel scheduler checks every 30 seconds but only runs each job when its 3-minute interval is due.
+- Sync/export work remains on background threads to keep the app responsive.
