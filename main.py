@@ -2096,7 +2096,12 @@ class ROHIAttendanceApp(MDApp):
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, False)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-            android_activity.startActivityForResult(intent, request_code)
+            # startActivityForResult is a real Java Activity method - it only
+            # exists on the actual PythonActivity instance, not on the
+            # android.activity Python module (that module only exposes
+            # bind/unbind for the on_activity_result event dispatcher).
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            PythonActivity.mActivity.startActivityForResult(intent, request_code)
         except Exception as e:
             logger.exception("Could not open Android gallery:")
             self._set_gallery_status(target, f"Could not open gallery: {e}")
