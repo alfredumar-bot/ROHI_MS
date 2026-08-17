@@ -1,0 +1,257 @@
+<ReportsScreen>:
+    MDScreen:
+        md_bg_color: 0.95, 0.95, 0.95, 1
+
+        MDBoxLayout:
+            orientation: 'vertical'
+
+            MDTopAppBar:
+                title: "Attendance Reports"
+                elevation: 2
+                md_bg_color: 0.13, 0.40, 0.16, 1
+                left_action_items: [["arrow-left", lambda x: app.open_dashboard()]]
+
+            ScrollView:
+                do_scroll_x: False
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(16)
+                    spacing: dp(16)
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                    # ---------------- Staff Profile Summary ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(6)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            id: report_name
+                            text: "Name: -"
+                            bold: True
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: report_employment_type
+                            text: "Employment Type: -"
+                            font_style: "Caption"
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: report_cluster
+                            text: "Cluster: -"
+                            font_style: "Caption"
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: report_position
+                            text: "Position: -"
+                            font_style: "Caption"
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: report_base_gps
+                            text: "Base GPS / Office Coordinate: -"
+                            font_style: "Caption"
+                            adaptive_height: True
+
+                    # ---------------- One Report Export ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            text: "Generate Report"
+                            font_style: "Subtitle1"
+                            bold: True
+                            adaptive_height: True
+
+                        Spinner:
+                            id: report_type_field
+                            text: "Attendance - Selected Period"
+                            values: ["Attendance - Selected Period", "Attendance - Full History", "Complete Staff Registration"]
+                            size_hint_y: None
+                            height: dp(46)
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(10)
+                            size_hint_y: None
+                            height: dp(50)
+
+                            MDRaisedButton:
+                                text: "GENERATE REPORT (EXCEL)"
+                                size_hint_x: 1
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.generate_selected_report()
+
+                            MDIconButton:
+                                icon: "email"
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                theme_text_color: "Custom"
+                                text_color: 1, 1, 1, 1
+                                on_release: app.generate_and_email_report()
+
+                    # ---------------- Period Selector ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(10)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            text: "Select Report Period"
+                            font_style: "Subtitle1"
+                            bold: True
+                            adaptive_height: True
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDLabel:
+                                text: "Month:"
+                                size_hint_x: 0.25
+                                adaptive_height: True
+                            Spinner:
+                                id: report_month_spinner
+                                text: "January"
+                                values: ["January","February","March","April","May","June","July","August","September","October","November","December"]
+                                size_hint_y: None
+                                height: dp(40)
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDLabel:
+                                text: "Year:"
+                                size_hint_x: 0.25
+                                adaptive_height: True
+                            Spinner:
+                                id: report_year_spinner
+                                text: "2026"
+                                values: ["2023","2024","2025","2026","2027"]
+                                size_hint_y: None
+                                height: dp(40)
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDLabel:
+                                text: "Day:"
+                                size_hint_x: 0.25
+                                adaptive_height: True
+                            Spinner:
+                                id: report_day_spinner
+                                text: "All Days (Monthly)"
+                                values: ["All Days (Monthly)"] + [str(d) for d in range(1, 32)]
+                                size_hint_y: None
+                                height: dp(40)
+
+                        MDRaisedButton:
+                            text: "GENERATE REPORT"
+                            pos_hint: {'center_x': 0.5}
+                            on_release: app.generate_report()
+
+                    # ---------------- Summary ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(8)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            text: "Period Summary"
+                            font_style: "Subtitle1"
+                            bold: True
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: report_present_label
+                            text: "Present: -"
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: report_absent_label
+                            text: "Absent: -"
+                            adaptive_height: True
+
+                        MDLabel:
+                            id: report_late_label
+                            text: "Total Hours Late: -"
+                            adaptive_height: True
+
+                    # ---------------- Daily Records Table ----------------
+                    MDCard:
+                        orientation: 'vertical'
+                        padding: dp(16)
+                        spacing: dp(8)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        radius: [12,]
+                        elevation: 2
+
+                        MDLabel:
+                            text: "Daily Records"
+                            font_style: "Subtitle1"
+                            bold: True
+                            adaptive_height: True
+
+                        MDBoxLayout:
+                            orientation: 'horizontal'
+                            spacing: dp(4)
+                            adaptive_height: True
+                            MDLabel:
+                                text: "Date"
+                                bold: True
+                                font_style: "Caption"
+                            MDLabel:
+                                text: "In / Out"
+                                bold: True
+                                font_style: "Caption"
+                            MDLabel:
+                                text: "Late"
+                                bold: True
+                                font_style: "Caption"
+                            MDLabel:
+                                text: "GPS Status"
+                                bold: True
+                                font_style: "Caption"
+
+                        MDSeparator:
+
+                        MDBoxLayout:
+                            id: report_rows_container
+                            orientation: 'vertical'
+                            spacing: dp(4)
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                    MDLabel:
+                        id: report_status_label
+                        text: ""
+                        font_style: "Caption"
+                        theme_text_color: "Secondary"
+                        adaptive_height: True
