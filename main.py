@@ -6,6 +6,7 @@ import math
 import random
 import re
 import logging
+import logging.handlers
 import calendar
 import threading
 import time
@@ -18,16 +19,26 @@ from datetime import datetime, timedelta
 # -------------------------------------------------------------
 # AUTOMATIC LOG FILE GENERATOR
 # -------------------------------------------------------------
+# Performance note: logging is kept at WARNING level (not DEBUG) so routine
+# operations don't hit disk on every call, and the file handler is capped
+# with rotation so logs/rohi_app.log can't grow unbounded over time. Set
+# ROHI_DEBUG_LOGGING=1 as an environment variable if verbose logs are needed
+# for troubleshooting a specific issue.
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(APP_DIR, "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, "rohi_app.log")
 
+_DEBUG_LOGGING = os.environ.get("ROHI_DEBUG_LOGGING") == "1"
+
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.DEBUG if _DEBUG_LOGGING else logging.WARNING,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE, mode='a', encoding='utf-8'),
+        logging.handlers.RotatingFileHandler(
+            LOG_FILE, mode='a', encoding='utf-8',
+            maxBytes=1_000_000, backupCount=2,
+        ),
         logging.StreamHandler(sys.stdout)
     ]
 )

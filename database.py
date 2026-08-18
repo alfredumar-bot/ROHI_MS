@@ -145,6 +145,20 @@ def create_attendance_table():
             except sqlite3.OperationalError as exc:
                 if "duplicate column" not in str(exc).lower():
                     raise
+        # Performance: attendance is queried by email and check_in_time on
+        # nearly every screen (dashboard, reports, timesheet, gform sync),
+        # and grows by rows every working day. Without an index these are
+        # full table scans; the composite index covers both the plain
+        # "WHERE email = ?" lookups and the "email = ? AND check_in_time
+        # LIKE 'YYYY-MM%'" monthly-report queries.
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_attendance_email_checkin "
+            "ON attendance(email, check_in_time)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_attendance_gform_synced "
+            "ON attendance(gform_synced)"
+        )
         conn.commit()
     finally:
         conn.close()
