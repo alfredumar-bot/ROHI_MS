@@ -182,11 +182,26 @@
                             on_release: app.export_timesheet_excel()
 
                         MDIconButton:
-                            icon: "email"
+                            icon: "cloud-upload"
                             md_bg_color: 0.13, 0.40, 0.16, 1
                             theme_text_color: "Custom"
                             text_color: 1, 1, 1, 1
+                            on_release: app.send_timesheet_to_excel()
+ 
+                        MDIconButton:
+                            icon: "email-outline"
+                            md_bg_color: 0.13, 0.40, 0.16, 1
+                            theme_text_color: "Custom"
+                            text_color: 1, 1, 1, 1
+                            tooltip_text: "Email generated Timesheet"
                             on_release: app.email_timesheet_export()
+
+                    MDRaisedButton:
+                        text: "SEND TIMESHEET TO GOOGLE EXCEL"
+                        size_hint_x: 1
+                        height: dp(50)
+                        md_bg_color: 0.13, 0.40, 0.16, 1
+                        on_release: app.send_timesheet_to_excel()
 
                     MDLabel:
                         id: timesheet_status_label

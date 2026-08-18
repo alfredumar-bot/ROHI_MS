@@ -53,6 +53,12 @@
                             theme_text_color: "Secondary"
                             adaptive_height: True
 
+                        MDLabel:
+                            text: "Excel Auto-Sync is configured in Server Connection."
+                            font_style: "Caption"
+                            theme_text_color: "Secondary"
+                            adaptive_height: True
+
                         MDRaisedButton:
                             text: "OPEN SERVER CONNECTION"
                             md_bg_color: 0.13, 0.40, 0.16, 1
@@ -100,3 +106,34 @@
                             text: "RESET DATABASE"
                             md_bg_color: 0.8, 0.1, 0.1, 1
                             on_release: app.confirm_reset_database()
+
+                    # ---------------- Footer credit ----------------
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        spacing: dp(4)
+                        size_hint_y: None
+                        height: dp(20)
+                        padding: [0, dp(4), dp(4), 0]
+                        pos_hint: {'right': 1}
+
+                        Widget:
+
+                        MDIcon:
+                            icon: "palette-outline"
+                            theme_text_color: "Custom"
+                            text_color: 0.13, 0.40, 0.16, 0.55
+                            font_size: "11sp"
+                            size_hint: None, None
+                            size: dp(12), dp(12)
+                            pos_hint: {'center_y': 0.5}
+
+                        MDLabel:
+                            text: "Designed by Fred Umar"
+                            font_size: "9sp"
+                            theme_text_color: "Custom"
+                            text_color: 0.13, 0.40, 0.16, 0.55
+                            halign: "right"
+                            size_hint_x: None
+                            width: self.texture_size[0]
+                            adaptive_height: True
+                            pos_hint: {'center_y': 0.5}

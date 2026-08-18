@@ -132,57 +132,269 @@
                             hint_text: "SSL Mode (disable / allow / prefer / require)"
                             text: "prefer"
 
-                    # ---------------- Google Form Link ----------------
+                    # ---------------- Excel Auto-Sync Connections ----------------
                     MDCard:
                         orientation: 'vertical'
                         padding: dp(16)
-                        spacing: dp(12)
+                        spacing: dp(10)
                         size_hint_y: None
                         height: self.minimum_height
                         radius: [12,]
                         elevation: 2
 
                         MDLabel:
-                            text: "Google Form"
+                            text: "Excel Auto-Sync Connections"
                             font_style: "Subtitle1"
                             bold: True
                             adaptive_height: True
 
-                        MDTextField:
-                            id: google_form_url_field
-                            hint_text: "Paste Google Form link here"
-
-                        MDRaisedButton:
-                            text: "OPEN GOOGLE FORM"
-                            size_hint_x: 1
-                            md_bg_color: 0.25, 0.45, 0.75, 1
-                            on_release: app.open_google_form()
-
-                        MDSeparator:
-
                         MDLabel:
-                            text: "Automatic submission (fills the Sheet with no tap needed)"
-                            font_style: "Caption"
-                            bold: True
-                            adaptive_height: True
-
-                        MDTextField:
-                            id: google_form_prefilled_url_field
-                            hint_text: "Paste the Google Form PRE-FILLED link here"
-                            multiline: True
-
-                        MDRaisedButton:
-                            text: "DETECT & SAVE FIELDS"
-                            size_hint_x: 1
-                            md_bg_color: 0.13, 0.40, 0.16, 1
-                            on_release: app.save_google_form_prefilled_url()
-
-                        MDLabel:
-                            id: google_form_auto_sync_status_label
-                            text: ""
+                            text: "The Google link is the destination. The upload endpoint is the secure bridge that lets ROHI send files/data automatically without opening Google or asking the user to choose an account."
                             font_style: "Caption"
                             theme_text_color: "Secondary"
                             adaptive_height: True
+                            text_size: self.width, None
+
+                        MDTextField:
+                            id: attendance_link_field
+                            hint_text: "ROHI Attendance Report link"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDCard:
+                                id: attendance_connection_badge
+                                orientation: "horizontal"
+                                size_hint_x: 0.42
+                                size_hint_y: None
+                                height: dp(36)
+                                padding: [dp(8), dp(4)]
+                                radius: [18,]
+                                elevation: 0
+                                md_bg_color: 0.96, 0.87, 0.87, 1
+
+                                MDIcon:
+                                    id: attendance_connection_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    size_hint: None, None
+                                    size: dp(20), dp(20)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: attendance_connection_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    adaptive_height: True
+                                    pos_hint: {"center_y": .5}
+
+                            MDRaisedButton:
+                                text: "CONNECT ATTENDANCE"
+                                size_hint_x: 0.58
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.connect_excel_report("attendance")
+
+                        MDTextField:
+                            id: attendance_endpoint_field
+                            hint_text: "Attendance automatic upload endpoint (required for Send to Google)"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDTextField:
+                            id: timesheet_link_field
+                            hint_text: "ROHI Timesheet folder/link"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDCard:
+                                id: timesheet_connection_badge
+                                orientation: "horizontal"
+                                size_hint_x: 0.42
+                                size_hint_y: None
+                                height: dp(36)
+                                padding: [dp(8), dp(4)]
+                                radius: [18,]
+                                elevation: 0
+                                md_bg_color: 0.96, 0.87, 0.87, 1
+
+                                MDIcon:
+                                    id: timesheet_connection_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    size_hint: None, None
+                                    size: dp(20), dp(20)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: timesheet_connection_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    adaptive_height: True
+                                    pos_hint: {"center_y": .5}
+
+                            MDRaisedButton:
+                                text: "CONNECT TIMESHEET"
+                                size_hint_x: 0.58
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.connect_excel_report("timesheet")
+
+                        MDTextField:
+                            id: timesheet_endpoint_field
+                            hint_text: "Timesheet automatic upload endpoint (required for Send to Google)"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDTextField:
+                            id: leave_link_field
+                            hint_text: "ROHI Leave Management folder/link"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDCard:
+                                id: leave_connection_badge
+                                orientation: "horizontal"
+                                size_hint_x: 0.42
+                                size_hint_y: None
+                                height: dp(36)
+                                padding: [dp(8), dp(4)]
+                                radius: [18,]
+                                elevation: 0
+                                md_bg_color: 0.96, 0.87, 0.87, 1
+
+                                MDIcon:
+                                    id: leave_connection_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    size_hint: None, None
+                                    size: dp(20), dp(20)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: leave_connection_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    adaptive_height: True
+                                    pos_hint: {"center_y": .5}
+
+                            MDRaisedButton:
+                                text: "CONNECT LEAVE"
+                                size_hint_x: 0.58
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.connect_excel_report("leave")
+
+                        MDTextField:
+                            id: leave_endpoint_field
+                            hint_text: "Leave automatic upload endpoint (required for Send to Google)"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDTextField:
+                            id: staff_link_field
+                            hint_text: "ROHI Complete Staff on IMS link"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDBoxLayout:
+                            orientation: "horizontal"
+                            spacing: dp(8)
+                            adaptive_height: True
+
+                            MDCard:
+                                id: staff_connection_badge
+                                orientation: "horizontal"
+                                size_hint_x: 0.42
+                                size_hint_y: None
+                                height: dp(36)
+                                padding: [dp(8), dp(4)]
+                                radius: [18,]
+                                elevation: 0
+                                md_bg_color: 0.96, 0.87, 0.87, 1
+
+                                MDIcon:
+                                    id: staff_connection_icon
+                                    icon: "close-circle"
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    size_hint: None, None
+                                    size: dp(20), dp(20)
+                                    pos_hint: {"center_y": .5}
+
+                                MDLabel:
+                                    id: staff_connection_label
+                                    text: "Not Connected"
+                                    bold: True
+                                    theme_text_color: "Custom"
+                                    text_color: 0.80, 0.10, 0.10, 1
+                                    adaptive_height: True
+                                    pos_hint: {"center_y": .5}
+
+                            MDRaisedButton:
+                                text: "CONNECT STAFF"
+                                size_hint_x: 0.58
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.connect_excel_report("staff")
+
+                        MDTextField:
+                            id: staff_endpoint_field
+                            hint_text: "Staff automatic upload endpoint (required for Send to Google)"
+                            multiline: True
+                            size_hint_y: None
+                            height: dp(64)
+
+                        MDLabel:
+                            id: excel_sync_result_label
+                            text: "Links are preloaded from the supplied auto-sync workbook."
+                            font_style: "Caption"
+                            theme_text_color: "Secondary"
+                            adaptive_height: True
+                            text_size: self.width, None
+
+                        MDBoxLayout:
+                            spacing: dp(8)
+                            size_hint_y: None
+                            height: dp(48)
+
+                            MDRaisedButton:
+                                text: "SAVE LINKS"
+                                size_hint_x: 0.5
+                                md_bg_color: 0.4, 0.4, 0.4, 1
+                                on_release: app.save_excel_sync_settings()
+
+                            MDRaisedButton:
+                                text: "SAVE ALL LINKS"
+                                size_hint_x: 0.5
+                                md_bg_color: 0.13, 0.40, 0.16, 1
+                                on_release: app.save_excel_sync_settings()
 
                     # ---------------- Actions ----------------
                     MDBoxLayout:

@@ -476,3 +476,12 @@
                         height: dp(50)
                         md_bg_color: 0.1, 0.45, 0.85, 1
                         on_release: app.submit_staff()
+
+                    MDLabel:
+                        id: registration_sync_status
+                        text: "Registration will sync to the configured Google Sheet automatically when connected."
+                        font_style: "Caption"
+                        theme_text_color: "Secondary"
+                        halign: "center"
+                        text_size: self.width, None
+                        adaptive_height: True

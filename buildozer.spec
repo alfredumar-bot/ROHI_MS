@@ -4,9 +4,9 @@ package.name = rohiattendance
 package.domain = org.rohi
 
 source.dir = .
-source.include_exts = py,png,jpg,jpeg,kv,atlas,db,ttf,json
+source.include_exts = py,png,jpg,jpeg,kv,atlas,db,ttf,json,xlsx
 
-version = 1.2
+version = 1.4
 
 # kivymd is pinned to 1.2.0 to match what the app was built/tested against
 # (KivyMD 2.0 changes several widget APIs used here, e.g. MDDropdownMenu).

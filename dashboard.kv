@@ -12,22 +12,26 @@
                     MDBoxLayout:
                         orientation: 'vertical'
 
-                        # Custom Professional Header (Logo + Title + Actions)
+                        # Responsive ROHI header: branding and actions are kept in
+                        # separate areas so the title can never overlap the logo or icons.
                         MDBoxLayout:
                             orientation: 'vertical'
                             size_hint_y: None
-                            height: dp(64)
+                            height: dp(82)
                             md_bg_color: 0.13, 0.40, 0.16, 1
 
                             MDBoxLayout:
                                 orientation: 'horizontal'
-                                padding: [dp(4), 0, dp(12), 0]
-                                spacing: dp(8)
+                                padding: [dp(6), dp(4), dp(6), dp(4)]
+                                spacing: dp(4)
                                 size_hint_y: None
-                                height: dp(56)
+                                height: dp(78)
 
                                 MDIconButton:
                                     icon: "menu"
+                                    size_hint_x: None
+                                    width: dp(38)
+                                    padding: 0
                                     theme_text_color: "Custom"
                                     text_color: 1, 1, 1, 1
                                     pos_hint: {'center_y': 0.5}
@@ -35,43 +39,65 @@
 
                                 FitImage:
                                     id: header_logo
-                                    source: "rohi_logo.png"
+                                    source: "rohi_dashboard_logo.png"
                                     size_hint: None, None
-                                    size: dp(38), dp(38)
-                                    radius: [19,]
+                                    size: dp(56), dp(56)
+                                    radius: [28,]
                                     pos_hint: {'center_y': 0.5}
 
                                 MDBoxLayout:
                                     orientation: 'vertical'
-                                    adaptive_height: True
+                                    size_hint_x: 1
+                                    size_hint_y: None
+                                    height: dp(58)
+                                    spacing: 0
                                     pos_hint: {'center_y': 0.5}
 
                                     MDLabel:
-                                        text: "ROHI Staff App"
-                                        font_style: "Subtitle1"
+                                        text: "ROHI App"
+                                        font_size: "17sp"
                                         bold: True
                                         theme_text_color: "Custom"
                                         text_color: 1, 1, 1, 1
                                         adaptive_height: True
+                                        shorten: True
+                                        shorten_from: "right"
 
                                     MDLabel:
                                         text: "Restoration of Hope Initiative"
-                                        font_style: "Caption"
+                                        font_size: "10sp"
                                         theme_text_color: "Custom"
-                                        text_color: 0.85, 0.93, 0.86, 1
+                                        text_color: 1, 1, 1, 0.92
                                         adaptive_height: True
-
-                                Widget:
-                                    # Spacer pushes the right-side icons to the edge
+                                        shorten: True
+                                        shorten_from: "right"
 
                                 MDIconButton:
                                     icon: "bell-outline"
+                                    size_hint_x: None
+                                    width: dp(34)
+                                    padding: 0
                                     theme_text_color: "Custom"
                                     text_color: 1, 1, 1, 1
                                     pos_hint: {'center_y': 0.5}
 
                                 MDIconButton:
+                                    id: push_reports_btn
+                                    icon: "cloud-upload"
+                                    size_hint_x: None
+                                    width: dp(34)
+                                    padding: 0
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    pos_hint: {'center_y': 0.5}
+                                    tooltip_text: "Push reports now"
+                                    on_release: app.push_all_reports_now()
+
+                                MDIconButton:
                                     icon: "cog-outline"
+                                    size_hint_x: None
+                                    width: dp(34)
+                                    padding: 0
                                     theme_text_color: "Custom"
                                     text_color: 1, 1, 1, 1
                                     pos_hint: {'center_y': 0.5}
@@ -79,15 +105,17 @@
 
                                 MDIconButton:
                                     icon: "account-circle-outline"
+                                    size_hint_x: None
+                                    width: dp(34)
+                                    padding: 0
                                     theme_text_color: "Custom"
                                     text_color: 1, 1, 1, 1
                                     pos_hint: {'center_y': 0.5}
                                     on_release: app.logout()
 
-                            # Thin accent underline for a polished, on-brand finish
                             MDBoxLayout:
                                 size_hint_y: None
-                                height: dp(3)
+                                height: dp(4)
                                 md_bg_color: 0.85, 0.65, 0.13, 1
 
                         ScrollView:
@@ -103,81 +131,139 @@
 
                                 # 1. Profile Card
                                 MDCard:
-                                    orientation: 'horizontal'
-                                    padding: dp(10)
-                                    spacing: dp(16)
+                                    orientation: 'vertical'
+                                    padding: dp(12)
+                                    spacing: dp(7)
                                     size_hint_y: None
-                                    height: dp(126)
+                                    height: dp(235)
                                     radius: [12,]
                                     md_bg_color: 0.90, 0.96, 0.91, 1
                                     elevation: 2
 
-                                    FitImage:
-                                        id: dash_photo
-                                        source: "default_avatar.png"
-                                        size_hint: None, None
-                                        size: dp(64), dp(64)
-                                        radius: [38,]
-                                        pos_hint: {'center_y': 0.5}
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        size_hint_y: None
+                                        height: dp(66)
+                                        spacing: dp(10)
+
+                                        FitImage:
+                                            id: dash_photo
+                                            source: "default_avatar.png"
+                                            size_hint: None, None
+                                            size: dp(58), dp(58)
+                                            radius: [29,]
+                                            pos_hint: {'center_y': 0.5}
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            spacing: dp(1)
+                                            size_hint_y: None
+                                            height: dp(60)
+                                            pos_hint: {'center_y': 0.5}
+
+                                            MDLabel:
+                                                id: welcome_label
+                                                text: "Welcome, Staff Member"
+                                                font_size: "19sp"
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            MDLabel:
+                                                id: role_label
+                                                text: "Position: -"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+
+                                            MDLabel:
+                                                id: email_label
+                                                text: "Email: -"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                    MDSeparator:
 
                                     MDBoxLayout:
-                                        orientation: 'vertical'
-                                        spacing: dp(2)
-                                        pos_hint: {'center_y': 0.5}
+                                        orientation: 'horizontal'
+                                        spacing: dp(14)
+                                        size_hint_y: None
+                                        height: dp(115)
 
-                                        MDLabel:
-                                            id: welcome_label
-                                            text: "Welcome, Staff Member"
-                                            font_style: "H6"
-                                            bold: True
-                                            adaptive_height: True
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            spacing: dp(3)
+                                            size_hint_x: 0.5
 
-                                        MDLabel:
-                                            id: role_label
-                                            text: "Position: MEAL Officer"
-                                            font_style: "Subtitle2"
-                                            theme_text_color: "Secondary"
-                                            adaptive_height: True
+                                            MDLabel:
+                                                id: staff_id_label
+                                                text: "Staff ID: -"
+                                                font_style: "Caption"
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
 
-                                        MDLabel:
-                                            id: email_label
-                                            text: "Email: user@rohi.org"
-                                            font_style: "Caption"
-                                            theme_text_color: "Secondary"
-                                            adaptive_height: True
+                                            MDLabel:
+                                                id: unique_id_label
+                                                text: "Unique ID: -"
+                                                font_style: "Caption"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.13, 0.40, 0.16, 1
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
 
-                                        MDLabel:
-                                            id: staff_id_label
-                                            text: "Staff ID: ROHI/MIU/P/067"
-                                            font_style: "Caption"
-                                            theme_text_color: "Hint"
-                                            bold: True
-                                            adaptive_height: True
+                                            MDLabel:
+                                                id: state_office_label
+                                                text: "State Office: -"
+                                                font_style: "Caption"
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
 
-                                        MDLabel:
-                                            id: unique_id_label
-                                            text: "Unique ID: -"
-                                            font_style: "Caption"
-                                            theme_text_color: "Custom"
-                                            text_color: 0.13, 0.40, 0.16, 1
-                                            bold: True
-                                            adaptive_height: True
+                                            MDLabel:
+                                                id: cluster_label
+                                                text: "Cluster: -"
+                                                font_style: "Caption"
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
 
-                                        MDLabel:
-                                            id: state_office_label
-                                            text: "State Office: Borno State Office"
-                                            font_style: "Caption"
-                                            theme_text_color: "Hint"
-                                            bold: True
-                                            adaptive_height: True
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            spacing: dp(3)
+                                            size_hint_x: 0.5
 
-                                        MDLabel:
-                                            id: cluster_label
-                                            text: "Cluster: -"
-                                            font_style: "Caption"
-                                            theme_text_color: "Hint"
-                                            bold: True
-                                            adaptive_height: True
+                                            MDLabel:
+                                                id: push_reports_status
+                                                text: "Auto-sync: every 3 minutes"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            MDLabel:
+                                                id: excel_sync_status
+                                                text: "Excel Sync: checking..."
+                                                font_style: "Caption"
+                                                bold: True
+                                                theme_text_color: "Custom"
+                                                text_color: 0.75, 0.55, 0.05, 1
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            Widget:
+                                                size_hint_y: 1
 
                                 # 2. Attendance Status Metrics Cards (Absent, Punctuality, Late + Zigzag Trend)
                                 MDGridLayout:
