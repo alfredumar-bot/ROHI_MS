@@ -834,8 +834,17 @@ class ROHIAttendanceApp(MDApp):
             logger.exception("Could not update Excel link status for %s", report_type)
 
     def connect_excel_report(self, report_type):
-        """Test one report link in the background and show green/red status."""
-        url = str(self._excel_sync_state.get(f"{report_type}_link") or "").strip()
+        """Test one report link in the background and show green/red status.
+        Reads directly from the on-screen field (not the last-saved value) so
+        pressing CONNECT tests whatever link is currently typed in, even if
+        SAVE LINKS hasn't been pressed yet - matching what the button visibly
+        looks like it should do."""
+        field_id = f"{report_type}_link_field"
+        ids = self.server_connection_screen.ids
+        if field_id in ids:
+            url = ids[field_id].text.strip()
+        else:
+            url = str(self._excel_sync_state.get(f"{report_type}_link") or "").strip()
         if not url.startswith(("http://", "https://")):
             self._set_excel_link_status(report_type, False, f"{report_type.title()} link is missing or invalid.")
             return
