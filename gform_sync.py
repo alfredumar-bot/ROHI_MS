@@ -21,11 +21,22 @@ Design:
 import os
 import json
 import logging
+import ssl
 from urllib.parse import urlparse, parse_qs, urlencode
 from urllib.request import urlopen, Request
 from urllib.error import URLError, HTTPError
 
 logger = logging.getLogger("ROHIApp.gform_sync")
+
+# See main.py for why this is needed: python-for-android builds don't expose
+# the OS CA store to Python, so plain urlopen() on https:// fails SSL
+# verification without an explicit CA bundle from certifi.
+try:
+    import certifi
+    _SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+except Exception:
+    logger.warning("certifi not available - HTTPS requests may fail certificate verification on Android.")
+    _SSL_CONTEXT = ssl.create_default_context()
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(APP_DIR, "gform_config.json")
@@ -187,7 +198,7 @@ def submit_row(row: dict, config=None):
         request = Request(response_url, data=data, method="POST")
         request.add_header("Content-Type", "application/x-www-form-urlencoded")
         request.add_header("User-Agent", "Mozilla/5.0 (ROHI-Attendance-App)")
-        with urlopen(request, timeout=15) as response:
+        with urlopen(request, timeout=15, context=_SSL_CONTEXT) as response:
             status = response.status
         # Google Forms replies 200 on success even without validating
         # semantics; anything else is treated as a failure.

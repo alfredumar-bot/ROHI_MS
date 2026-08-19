@@ -11,10 +11,31 @@ import calendar
 import threading
 import time
 import shutil
+import ssl
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from datetime import datetime, timedelta
+
+# -------------------------------------------------------------
+# HTTPS certificate verification (Android/python-for-android fix)
+# -------------------------------------------------------------
+# python-for-android builds don't expose the OS's CA certificate store to
+# Python the way desktop Python does, so plain urlopen() on an https://
+# link fails with "SSL: CERTIFICATE_VERIFY_FAILED" even though the link
+# itself is fine. certifi bundles a CA bundle inside the app so
+# verification has something to check against. _SSL_CONTEXT is passed to
+# every urlopen() call below; if certifi isn't available for some reason
+# this falls back to the (Android-broken) default context rather than
+# crashing the app.
+try:
+    import certifi
+    _SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+except Exception:
+    logging.getLogger("ROHIApp").warning(
+        "certifi not available - HTTPS requests may fail certificate verification on Android."
+    )
+    _SSL_CONTEXT = ssl.create_default_context()
 
 # -------------------------------------------------------------
 # AUTOMATIC LOG FILE GENERATOR
@@ -163,7 +184,7 @@ def _http_upload_excel(filepath, endpoint, report_type):
             req = Request(endpoint, data=body, method="POST")
             req.add_header("Content-Type", "application/json")
             req.add_header("User-Agent", "ROHI-Attendance-App/1.8")
-            with urlopen(req, timeout=60) as response:
+            with urlopen(req, timeout=60, context=_SSL_CONTEXT) as response:
                 status = getattr(response, "status", 200)
                 response.read(2048)
             if status < 200 or status >= 300:
@@ -196,7 +217,7 @@ def _http_upload_excel(filepath, endpoint, report_type):
         req = Request(endpoint, data=bytes(body), method="POST")
         req.add_header("Content-Type", f"multipart/form-data; boundary={boundary}")
         req.add_header("User-Agent", "ROHI-Attendance-App/1.0")
-        with urlopen(req, timeout=30) as response:
+        with urlopen(req, timeout=30, context=_SSL_CONTEXT) as response:
             status = getattr(response, "status", 200)
             response.read(1024)
         if status < 200 or status >= 300:
@@ -852,7 +873,7 @@ class ROHIAttendanceApp(MDApp):
         def worker():
             try:
                 req = Request(url, headers={"User-Agent": "ROHI-Attendance-App/1.7"}, method="GET")
-                with urlopen(req, timeout=10) as response:
+                with urlopen(req, timeout=10, context=_SSL_CONTEXT) as response:
                     status = getattr(response, "status", 200)
                     response.read(256)
                 ok = 200 <= status < 400
@@ -4413,7 +4434,7 @@ class ROHIAttendanceApp(MDApp):
             req = Request(endpoint, data=body, method="POST")
             req.add_header("Content-Type", "application/json; charset=utf-8")
             req.add_header("User-Agent", "ROHI-Attendance-App/2.0")
-            with urlopen(req, timeout=timeout) as response:
+            with urlopen(req, timeout=timeout, context=_SSL_CONTEXT) as response:
                 status = getattr(response, "status", 200)
                 raw = response.read(8192).decode("utf-8", errors="replace")
             if status < 200 or status >= 300:

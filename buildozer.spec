@@ -19,7 +19,7 @@ version = 1.4
 # available, e.g. 3.14) because reportlab's C accelerator (_rl_accel) uses
 # CPython APIs removed/changed in 3.11+ (PyUnicode_AS_UNICODE, opaque frame
 # objects) and fails to cross-compile against anything newer than 3.10.
-requirements = python3==3.10.11,hostpython3==3.10.11,kivy==2.3.1,kivymd==1.2.0,plyer,pyjnius,sqlite3,openpyxl,et_xmlfile,reportlab,pypdf,cryptography,msoffcrypto-tool,pillow,pg8000
+requirements = python3==3.10.11,hostpython3==3.10.11,kivy==2.3.1,kivymd==1.2.0,plyer,pyjnius,sqlite3,openpyxl,et_xmlfile,reportlab,pypdf,cryptography,msoffcrypto-tool,pillow,pg8000,certifi
 
 icon.filename = %(source.dir)s/rohi_logo.png
 presplash.filename = %(source.dir)s/rohi_logo.png
