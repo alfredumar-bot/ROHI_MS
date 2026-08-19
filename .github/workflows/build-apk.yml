@@ -1,4 +1,4 @@
-name: Build ROHI Attendance APK
+      name: Build ROHI Attendance APK
 
 on:
   workflow_dispatch:
@@ -77,10 +77,14 @@ jobs:
         env:
           P4A_RELEASE_KEYSTORE: ${{ github.workspace }}/rohi-release.keystore
           P4A_RELEASE_KEYSTORE_PASSWD: ${{ secrets.ROHI_KEYSTORE_PASSWORD }}
-          P4A_RELEASE_KEYALIAS: rohi
+          P4A_RELEASE_KEYALIAS: rohiattendance
           P4A_RELEASE_KEYALIAS_PASSWD: ${{ secrets.ROHI_KEYSTORE_PASSWORD }}
         run: |
           yes | buildozer android release
+
+      - name: Remove decoded keystore
+        if: always()
+        run: rm -f rohi-release.keystore
 
       - name: Find APK
         run: |
@@ -92,4 +96,4 @@ jobs:
         with:
           name: ROHI-Attendance-APK
           path: bin/*.apk
-          if-no-files-found: error
+          if-no-files-found: error  
