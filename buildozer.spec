@@ -37,6 +37,12 @@ android.ndk = 25b
 android.archs = arm64-v8a
 android.allow_backup = True
 
+# Force a plain installable .apk instead of an .aab (Android App Bundle).
+# AAB is the Play Store upload format and can't be side-loaded/installed
+# directly - "buildozer android release" defaults to building one, which
+# is why earlier release builds succeeded but produced no .apk in bin/.
+android.release_artifact = apk
+
 # Required for CI: auto-accept Android SDK licenses (non-interactive build)
 android.accept_sdk_license = True
 
