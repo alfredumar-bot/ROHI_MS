@@ -469,10 +469,40 @@ class ROHIAttendanceApp(MDApp):
         # survives restarts but is untouched by Reset Database / server config changes.
         self.GEOFENCE_RADIUS_METERS = self._load_geofence_radius()
 
-        # Load KV Files safely
+        # Startup performance: only splash.kv/login.kv are parsed and only the
+        # Splash/Login screens are built here, so the first frame renders as
+        # fast as possible instead of blocking on all 9 KV files (dashboard.kv
+        # alone is 60KB+) and 7 more screen widget trees before anything is
+        # shown. The rest is built in _finish_build, deferred to the very next
+        # frame via Clock.schedule_once(..., 0) - same total work, but the user
+        # sees the splash screen appear immediately rather than a blank screen.
         try:
-            kv_files = ["splash.kv", "login.kv", "registration.kv", "dashboard.kv",
-                        "reports.kv", "timesheet.kv", "leave.kv", "settings.kv", "server_connection.kv"]
+            for kv_name in ("splash.kv", "login.kv"):
+                kv_file = os.path.join(APP_DIR, kv_name)
+                if os.path.exists(kv_file):
+                    Builder.load_file(kv_file)
+                else:
+                    raise FileNotFoundError(f"Missing KV file: {kv_file}")
+        except Exception:
+            logger.exception("Failed to load initial KV layout files:")
+
+        sm = MDScreenManager()
+        sm.add_widget(SplashScreen(name="splash"))
+        sm.add_widget(LoginScreen(name="login"))
+        self._sm = sm
+
+        Clock.schedule_once(self._finish_build, 0)
+
+        return sm
+
+    def _finish_build(self, dt):
+        """Builds the remaining, heavier screens right after the first frame
+        has already rendered (see the note in build() above)."""
+        sm = self._sm
+
+        try:
+            kv_files = ["registration.kv", "dashboard.kv", "reports.kv",
+                        "timesheet.kv", "leave.kv", "settings.kv", "server_connection.kv"]
             for kv_name in kv_files:
                 kv_file = os.path.join(APP_DIR, kv_name)
                 if os.path.exists(kv_file):
@@ -483,9 +513,6 @@ class ROHIAttendanceApp(MDApp):
         except Exception:
             logger.exception("Failed to load KV layout files:")
 
-        sm = MDScreenManager()
-        sm.add_widget(SplashScreen(name="splash"))
-        sm.add_widget(LoginScreen(name="login"))
         sm.add_widget(RegistrationScreen(name="registration"))
         sm.add_widget(DashboardScreen(name="dashboard"))
         sm.add_widget(ReportsScreen(name="reports"))
@@ -521,8 +548,6 @@ class ROHIAttendanceApp(MDApp):
         # Silent background sync - pushes any pending rows to the server
         # every AUTO_SYNC_INTERVAL_SECONDS without needing "Synchronize Now".
         Clock.schedule_interval(self._auto_sync_tick, AUTO_SYNC_INTERVAL_SECONDS)
-
-        return sm
 
     def on_start(self):
         """Dropdown menu fields are opened via on_focus handlers declared directly

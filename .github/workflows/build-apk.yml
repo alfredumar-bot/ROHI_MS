@@ -69,9 +69,18 @@ jobs:
           path: .buildozer
           key: buildozer-project-${{ hashFiles('buildozer.spec') }}
 
-      - name: Build APK
+      - name: Decode signing keystore
         run: |
-          yes | buildozer android debug
+          echo "${{ secrets.ROHI_KEYSTORE_BASE64 }}" | base64 -d > rohi-release.keystore
+
+      - name: Build APK (release)
+        env:
+          P4A_RELEASE_KEYSTORE: ${{ github.workspace }}/rohi-release.keystore
+          P4A_RELEASE_KEYSTORE_PASSWD: ${{ secrets.ROHI_KEYSTORE_PASSWORD }}
+          P4A_RELEASE_KEYALIAS: rohi
+          P4A_RELEASE_KEYALIAS_PASSWD: ${{ secrets.ROHI_KEYSTORE_PASSWORD }}
+        run: |
+          yes | buildozer android release
 
       - name: Find APK
         run: |
