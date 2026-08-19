@@ -1,0 +1,1191 @@
+# Updated dashboard KV layout with the requested attendance summary cards (Absent, Punctuality, Late) and a zigzag sparkline trend graph for daily status tracking.
+# Note: Attendance status only marks present/punctual/late *after* the user explicitly clicks the Check-In button.
+
+<DashboardScreen>:
+    MDNavigationLayout:
+
+        ScreenManager:
+            MDScreen:
+                MDFloatLayout:
+                    md_bg_color: 1, 1, 1, 1
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
+
+                        # Responsive ROHI header: branding and actions are kept in
+                        # separate areas so the title can never overlap the logo or icons.
+                        MDBoxLayout:
+                            orientation: 'vertical'
+                            size_hint_y: None
+                            height: dp(82)
+                            md_bg_color: 0.13, 0.40, 0.16, 1
+
+                            MDBoxLayout:
+                                orientation: 'horizontal'
+                                padding: [dp(6), dp(4), dp(6), dp(4)]
+                                spacing: dp(4)
+                                size_hint_y: None
+                                height: dp(78)
+
+                                MDIconButton:
+                                    icon: "menu"
+                                    size_hint_x: None
+                                    width: dp(38)
+                                    padding: 0
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    pos_hint: {'center_y': 0.5}
+                                    on_release: nav_drawer.set_state("toggle")
+
+                                FitImage:
+                                    id: header_logo
+                                    source: "rohi_dashboard_logo.png"
+                                    size_hint: None, None
+                                    size: dp(56), dp(56)
+                                    radius: [28,]
+                                    pos_hint: {'center_y': 0.5}
+
+                                MDBoxLayout:
+                                    orientation: 'vertical'
+                                    size_hint_x: 1
+                                    size_hint_y: None
+                                    height: dp(58)
+                                    spacing: 0
+                                    pos_hint: {'center_y': 0.5}
+
+                                    MDLabel:
+                                        text: "ROHI App"
+                                        font_size: "17sp"
+                                        bold: True
+                                        theme_text_color: "Custom"
+                                        text_color: 1, 1, 1, 1
+                                        adaptive_height: True
+                                        shorten: True
+                                        shorten_from: "right"
+
+                                    MDLabel:
+                                        text: "Restoration of Hope Initiative"
+                                        font_size: "10sp"
+                                        theme_text_color: "Custom"
+                                        text_color: 1, 1, 1, 0.92
+                                        adaptive_height: True
+                                        shorten: True
+                                        shorten_from: "right"
+
+                                MDIconButton:
+                                    icon: "bell-outline"
+                                    size_hint_x: None
+                                    width: dp(34)
+                                    padding: 0
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    pos_hint: {'center_y': 0.5}
+
+                                MDIconButton:
+                                    id: push_reports_btn
+                                    icon: "cloud-upload"
+                                    size_hint_x: None
+                                    width: dp(34)
+                                    padding: 0
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    pos_hint: {'center_y': 0.5}
+                                    tooltip_text: "Push reports now"
+                                    on_release: app.push_all_reports_now()
+
+                                MDIconButton:
+                                    icon: "cog-outline"
+                                    size_hint_x: None
+                                    width: dp(34)
+                                    padding: 0
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    pos_hint: {'center_y': 0.5}
+                                    on_release: app.open_settings()
+
+                                MDIconButton:
+                                    icon: "account-circle-outline"
+                                    size_hint_x: None
+                                    width: dp(34)
+                                    padding: 0
+                                    theme_text_color: "Custom"
+                                    text_color: 1, 1, 1, 1
+                                    pos_hint: {'center_y': 0.5}
+                                    on_release: app.logout()
+
+                            MDBoxLayout:
+                                size_hint_y: None
+                                height: dp(4)
+                                md_bg_color: 0.85, 0.65, 0.13, 1
+
+                        ScrollView:
+                            do_scroll_x: False
+                            do_scroll_y: True
+
+                            MDBoxLayout:
+                                orientation: 'vertical'
+                                padding: [dp(10), dp(10), dp(10), dp(18)]
+                                spacing: dp(10)
+                                size_hint_y: None
+                                height: self.minimum_height
+
+                                # 1. Profile Card
+                                MDCard:
+                                    orientation: 'vertical'
+                                    padding: dp(12)
+                                    spacing: dp(7)
+                                    size_hint_y: None
+                                    height: dp(235)
+                                    radius: [12,]
+                                    md_bg_color: 1, 1, 1, 1
+                                    elevation: 2
+
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        size_hint_y: None
+                                        height: dp(66)
+                                        spacing: dp(10)
+
+                                        FitImage:
+                                            id: dash_photo
+                                            source: "default_avatar.png"
+                                            size_hint: None, None
+                                            size: dp(58), dp(58)
+                                            radius: [29,]
+                                            pos_hint: {'center_y': 0.5}
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            spacing: dp(1)
+                                            size_hint_y: None
+                                            height: dp(60)
+                                            pos_hint: {'center_y': 0.5}
+
+                                            MDLabel:
+                                                id: welcome_label
+                                                text: "Welcome, Staff Member"
+                                                font_size: "19sp"
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            MDLabel:
+                                                id: role_label
+                                                text: "Position: -"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+
+                                            MDLabel:
+                                                id: email_label
+                                                text: "Email: -"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                    MDSeparator:
+
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        spacing: dp(14)
+                                        size_hint_y: None
+                                        height: dp(115)
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            spacing: dp(3)
+                                            size_hint_x: 0.5
+
+                                            MDLabel:
+                                                id: staff_id_label
+                                                text: "Staff ID: -"
+                                                font_style: "Caption"
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            MDLabel:
+                                                id: unique_id_label
+                                                text: "Unique ID: -"
+                                                font_style: "Caption"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.13, 0.40, 0.16, 1
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            MDLabel:
+                                                id: state_office_label
+                                                text: "State Office: -"
+                                                font_style: "Caption"
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            MDLabel:
+                                                id: cluster_label
+                                                text: "Cluster: -"
+                                                font_style: "Caption"
+                                                bold: True
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            spacing: dp(3)
+                                            size_hint_x: 0.5
+
+                                            MDLabel:
+                                                id: push_reports_status
+                                                text: "Auto-sync: every 3 minutes"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            MDLabel:
+                                                id: excel_sync_status
+                                                text: "Excel Sync: checking..."
+                                                font_style: "Caption"
+                                                bold: True
+                                                theme_text_color: "Custom"
+                                                text_color: 0.75, 0.55, 0.05, 1
+                                                adaptive_height: True
+                                                shorten: True
+                                                shorten_from: "right"
+
+                                            Widget:
+                                                size_hint_y: 1
+
+                                # 2. Attendance Status Metrics Cards (Absent, Punctuality, Late + Zigzag Trend)
+                                MDGridLayout:
+                                    cols: 3
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(80)
+
+                                    # Absent Card
+                                    MDCard:
+                                        orientation: 'vertical'
+                                        padding: dp(10)
+                                        spacing: dp(2)
+                                        radius: [10,]
+                                        md_bg_color: 1, 1, 1, 1
+                                        elevation: 1
+
+                                        MDBoxLayout:
+                                            spacing: dp(4)
+                                            adaptive_height: True
+                                            MDIcon:
+                                                icon: "account-off-outline"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.8, 0.1, 0.1, 1
+                                                font_size: "16sp"
+                                            MDLabel:
+                                                text: "Absent"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+
+                                        MDLabel:
+                                            id: card_absent_count
+                                            text: "0 Days"
+                                            font_style: "Subtitle1"
+                                            bold: True
+                                            theme_text_color: "Custom"
+                                            text_color: 0.8, 0.1, 0.1, 1
+                                            adaptive_height: True
+
+                                        MDLabel:
+                                            text: "This Month"
+                                            font_style: "Caption"
+                                            font_size: "10sp"
+                                            theme_text_color: "Hint"
+
+                                    # Punctuality Card
+                                    MDCard:
+                                        orientation: 'vertical'
+                                        padding: dp(10)
+                                        spacing: dp(2)
+                                        radius: [10,]
+                                        md_bg_color: 1, 1, 1, 1
+                                        elevation: 1
+
+                                        MDBoxLayout:
+                                            spacing: dp(4)
+                                            adaptive_height: True
+                                            MDIcon:
+                                                icon: "account-check-outline"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.1, 0.6, 0.2, 1
+                                                font_size: "16sp"
+                                            MDLabel:
+                                                text: "Punctuality"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+
+                                        MDLabel:
+                                            id: card_punctuality_rate
+                                            text: "0.0%"
+                                            font_style: "Subtitle1"
+                                            bold: True
+                                            theme_text_color: "Custom"
+                                            text_color: 0.1, 0.6, 0.2, 1
+                                            adaptive_height: True
+
+                                        MDLabel:
+                                            text: "On-Time Arrival"
+                                            font_style: "Caption"
+                                            font_size: "10sp"
+                                            theme_text_color: "Hint"
+
+                                    # Late Card
+                                    MDCard:
+                                        orientation: 'vertical'
+                                        padding: dp(10)
+                                        spacing: dp(2)
+                                        radius: [10,]
+                                        md_bg_color: 1, 1, 1, 1
+                                        elevation: 1
+
+                                        MDBoxLayout:
+                                            spacing: dp(4)
+                                            adaptive_height: True
+                                            MDIcon:
+                                                icon: "clock-alert-outline"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.9, 0.5, 0, 1
+                                                font_size: "16sp"
+                                            MDLabel:
+                                                text: "Late Records"
+                                                font_style: "Caption"
+                                                theme_text_color: "Secondary"
+                                                adaptive_height: True
+
+                                        MDLabel:
+                                            id: card_late_count
+                                            text: "0 Times"
+                                            font_style: "Subtitle1"
+                                            bold: True
+                                            theme_text_color: "Custom"
+                                            text_color: 0.9, 0.5, 0, 1
+                                            adaptive_height: True
+
+                                        MDLabel:
+                                            text: "After 08:00 AM"
+                                            font_style: "Caption"
+                                            font_size: "10sp"
+                                            theme_text_color: "Hint"
+
+                                # 2b. Zigzag Trend Analysis Card (Present, Punctuality & Late Fluctuation Trend)
+                                MDCard:
+                                    orientation: 'vertical'
+                                    padding: dp(10)
+                                    spacing: dp(6)
+                                    size_hint_y: None
+                                    height: dp(95)
+                                    radius: [12,]
+                                    md_bg_color: 1, 1, 1, 1
+                                    elevation: 1
+
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        adaptive_height: True
+                                        MDIcon:
+                                            icon: "chart-timeline-variant"
+                                            theme_text_color: "Custom"
+                                            text_color: 0.18, 0.49, 0.20, 1
+                                            font_size: "18sp"
+                                        MDLabel:
+                                            text: "Attendance & Punctuality Zigzag Trend (Last 7 Days)"
+                                            font_style: "Caption"
+                                            bold: True
+                                            theme_text_color: "Secondary"
+
+                                    # Zigzag Trend Visualizer Row (Simulated Sparkline Status Bars / Badges)
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        spacing: dp(6)
+                                        size_hint_y: None
+                                        height: dp(42)
+
+                                        # Day 1
+                                        MDCard:
+                                            orientation: 'vertical'
+                                            padding: dp(4)
+                                            radius: [6,]
+                                            md_bg_color: 1, 1, 1, 1
+                                            elevation: 0
+                                            MDLabel:
+                                                text: "Mon"
+                                                font_style: "Caption"
+                                                font_size: "9sp"
+                                                halign: "center"
+                                            MDLabel:
+                                                text: "✓ On"
+                                                font_style: "Caption"
+                                                font_size: "10sp"
+                                                bold: True
+                                                halign: "center"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.1, 0.6, 0.2, 1
+
+                                        # Day 2
+                                        MDCard:
+                                            orientation: 'vertical'
+                                            padding: dp(4)
+                                            radius: [6,]
+                                            md_bg_color: 0.98, 0.93, 0.85, 1
+                                            elevation: 0
+                                            MDLabel:
+                                                text: "Tue"
+                                                font_style: "Caption"
+                                                font_size: "9sp"
+                                                halign: "center"
+                                            MDLabel:
+                                                text: "⚠ Late"
+                                                font_style: "Caption"
+                                                font_size: "10sp"
+                                                bold: True
+                                                halign: "center"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.9, 0.5, 0, 1
+
+                                        # Day 3
+                                        MDCard:
+                                            orientation: 'vertical'
+                                            padding: dp(4)
+                                            radius: [6,]
+                                            md_bg_color: 1, 1, 1, 1
+                                            elevation: 0
+                                            MDLabel:
+                                                text: "Wed"
+                                                font_style: "Caption"
+                                                font_size: "9sp"
+                                                halign: "center"
+                                            MDLabel:
+                                                text: "✓ On"
+                                                font_style: "Caption"
+                                                font_size: "10sp"
+                                                bold: True
+                                                halign: "center"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.1, 0.6, 0.2, 1
+
+                                        # Day 4
+                                        MDCard:
+                                            orientation: 'vertical'
+                                            padding: dp(4)
+                                            radius: [6,]
+                                            md_bg_color: 0.95, 0.88, 0.88, 1
+                                            elevation: 0
+                                            MDLabel:
+                                                text: "Thu"
+                                                font_style: "Caption"
+                                                font_size: "9sp"
+                                                halign: "center"
+                                            MDLabel:
+                                                text: "❌ Abs"
+                                                font_style: "Caption"
+                                                font_size: "10sp"
+                                                bold: True
+                                                halign: "center"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.8, 0.1, 0.1, 1
+
+                                        # Day 5 (Today - Controlled strictly by Check-In action)
+                                        MDCard:
+                                            id: trend_today_card
+                                            orientation: 'vertical'
+                                            padding: dp(4)
+                                            radius: [6,]
+                                            md_bg_color: 0.92, 0.92, 0.92, 1
+                                            elevation: 0
+                                            MDLabel:
+                                                text: "Today"
+                                                font_style: "Caption"
+                                                font_size: "9sp"
+                                                halign: "center"
+                                            MDLabel:
+                                                id: trend_today_status
+                                                text: "Pending"
+                                                font_style: "Caption"
+                                                font_size: "10sp"
+                                                bold: True
+                                                halign: "center"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.5, 0.5, 0.5, 1
+
+                                    MDLabel:
+                                        text: "*Zigzag metric fluctuates based on explicit daily check-in actions."
+                                        font_style: "Caption"
+                                        font_size: "9sp"
+                                        theme_text_color: "Hint"
+
+                                # 3. Live Time, Attendance & Clock State
+                                MDCard:
+                                    orientation: 'vertical'
+                                    padding: dp(10)
+                                    spacing: dp(10)
+                                    size_hint_y: None
+                                    height: self.minimum_height
+                                    radius: [12,]
+                                    md_bg_color: 1, 1, 1, 1
+                                    elevation: 2
+
+                                    MDLabel:
+                                        id: live_time_label
+                                        text: "Loading Date & Time..."
+                                        font_style: "Subtitle1"
+                                        bold: True
+                                        adaptive_height: True
+
+                                    MDSeparator:
+
+                                    # Attendance Status + Hours Late
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        adaptive_height: True
+
+                                        MDBoxLayout:
+                                            spacing: dp(6)
+                                            adaptive_height: True
+                                            MDLabel:
+                                                text: "Attendance Status:"
+                                                font_style: "Body2"
+                                                adaptive_width: True
+                                            MDLabel:
+                                                id: punctuality_status
+                                                text: "Absent (Check-In Required)"
+                                                font_style: "Body2"
+                                                bold: True
+                                                theme_text_color: "Custom"
+                                                text_color: 0.8, 0.1, 0.1, 1
+
+                                        MDLabel:
+                                            id: hours_late_label
+                                            text: "Hrs Late: 00:00 Mins"
+                                            font_style: "Caption"
+                                            bold: True
+                                            halign: "right"
+                                            theme_text_color: "Custom"
+                                            text_color: 0.8, 0.2, 0.1, 1
+
+                                    # Clock In Time & Clock Out Time Rows
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        adaptive_height: True
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            size_hint_x: 0.5
+                                            adaptive_height: True
+                                            MDLabel:
+                                                text: "Clock In Time:"
+                                                font_style: "Caption"
+                                                theme_text_color: "Hint"
+                                            MDLabel:
+                                                id: clock_in_time_label
+                                                text: "Not Checked In"
+                                                font_style: "Caption"
+                                                bold: True
+                                                theme_text_color: "Custom"
+                                                text_color: 0.1, 0.6, 0.2, 1
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            size_hint_x: 0.5
+                                            adaptive_height: True
+                                            MDLabel:
+                                                text: "Clock Out Time:"
+                                                font_style: "Caption"
+                                                theme_text_color: "Hint"
+                                                halign: "right"
+                                            MDLabel:
+                                                id: clock_out_time_label
+                                                text: "Not Checked Out"
+                                                font_style: "Caption"
+                                                bold: True
+                                                halign: "right"
+                                                theme_text_color: "Custom"
+                                                text_color: 0.8, 0.1, 0.1, 1
+
+                                    # Geofence Status Note (Check-In)
+                                    MDCard:
+                                        id: geofence_status_card
+                                        orientation: 'horizontal'
+                                        padding: [dp(12), dp(6), dp(12), dp(6)]
+                                        spacing: dp(8)
+                                        size_hint_y: None
+                                        height: dp(36)
+                                        radius: [8,]
+                                        md_bg_color: 1, 1, 1, 1
+                                        elevation: 0
+
+                                        MDIcon:
+                                            id: geofence_icon
+                                            icon: "map-marker-check"
+                                            theme_text_color: "Custom"
+                                            text_color: 0.1, 0.6, 0.2, 1
+                                            pos_hint: {'center_y': 0.5}
+                                            font_size: "20sp"
+
+                                        MDLabel:
+                                            id: geofence_note_label
+                                            text: "Check-In GPS Status: -"
+                                            font_style: "Caption"
+                                            bold: True
+                                            theme_text_color: "Custom"
+                                            text_color: 0.1, 0.5, 0.15, 1
+                                            pos_hint: {'center_y': 0.5}
+
+                                    MDSeparator:
+
+                                    # Registered GPS vs Current Check-in GPS
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        adaptive_height: True
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            size_hint_x: 0.5
+                                            adaptive_height: True
+                                            MDLabel:
+                                                text: "Static Registered GPS:"
+                                                font_style: "Caption"
+                                                theme_text_color: "Hint"
+                                            MDLabel:
+                                                id: static_gps_label
+                                                text: "11.8333° N, 13.1500° E"
+                                                font_style: "Caption"
+                                                bold: True
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            size_hint_x: 0.5
+                                            adaptive_height: True
+                                            MDLabel:
+                                                text: "Current Check-in GPS:"
+                                                font_style: "Caption"
+                                                theme_text_color: "Hint"
+                                                halign: "right"
+                                            MDLabel:
+                                                id: current_gps_label
+                                                text: "11.8335° N, 13.1502° E"
+                                                font_style: "Caption"
+                                                bold: True
+                                                halign: "right"
+
+                                    MDSeparator:
+
+                                    # Geofence Status Note (Check-Out)
+                                    MDCard:
+                                        id: checkout_geofence_status_card
+                                        orientation: 'horizontal'
+                                        padding: [dp(12), dp(6), dp(12), dp(6)]
+                                        spacing: dp(8)
+                                        size_hint_y: None
+                                        height: dp(36)
+                                        radius: [8,]
+                                        md_bg_color: 0.93, 0.93, 0.93, 1
+                                        elevation: 0
+
+                                        MDIcon:
+                                            id: checkout_geofence_icon
+                                            icon: "map-marker-question"
+                                            theme_text_color: "Custom"
+                                            text_color: 0.5, 0.5, 0.5, 1
+                                            pos_hint: {'center_y': 0.5}
+                                            font_size: "20sp"
+
+                                        MDLabel:
+                                            id: checkout_geofence_note_label
+                                            text: "Check-Out GPS Status: -"
+                                            font_style: "Caption"
+                                            bold: True
+                                            theme_text_color: "Custom"
+                                            text_color: 0.5, 0.5, 0.5, 1
+                                            pos_hint: {'center_y': 0.5}
+
+                                    MDSeparator:
+
+                                    # Registered GPS vs Current Check-out GPS
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        adaptive_height: True
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            size_hint_x: 0.5
+                                            adaptive_height: True
+                                            MDLabel:
+                                                text: "Static Registered GPS:"
+                                                font_style: "Caption"
+                                                theme_text_color: "Hint"
+                                            MDLabel:
+                                                text: static_gps_label.text
+                                                font_style: "Caption"
+                                                bold: True
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            size_hint_x: 0.5
+                                            adaptive_height: True
+                                            MDLabel:
+                                                text: "Current Check-out GPS:"
+                                                font_style: "Caption"
+                                                theme_text_color: "Hint"
+                                                halign: "right"
+                                            MDLabel:
+                                                id: checkout_gps_label
+                                                text: "Not Checked Out Yet"
+                                                font_style: "Caption"
+                                                bold: True
+                                                halign: "right"
+
+                                # 4. Action Clock Buttons (Side-by-Side Check In & Check Out)
+                                MDCard:
+                                    orientation: 'vertical'
+                                    padding: dp(10)
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: self.minimum_height
+                                    radius: [12,]
+                                    elevation: 2
+
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        spacing: dp(6)
+                                        adaptive_height: True
+                                        MDIcon:
+                                            icon: "clock-check-outline"
+                                            theme_text_color: "Custom"
+                                            text_color: 0.18, 0.49, 0.20, 1
+                                            font_size: "18sp"
+                                        MDLabel:
+                                            text: "Clock Actions"
+                                            font_style: "Subtitle1"
+                                            bold: True
+                                            adaptive_height: True
+
+                                    MDSeparator:
+
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        spacing: dp(8)
+                                        size_hint_y: None
+                                        height: dp(48)
+
+                                        MDRaisedButton:
+                                            id: check_in_btn
+                                            text: "CHECK IN"
+                                            icon: "login"
+                                            md_bg_color: 0.18, 0.49, 0.20, 1
+                                            size_hint_x: 0.5
+                                            height: dp(48)
+                                            on_release: app.check_in()
+
+                                        MDRaisedButton:
+                                            id: check_out_btn
+                                            text: "CHECK OUT"
+                                            icon: "logout"
+                                            md_bg_color: 0.8, 0.1, 0.1, 1
+                                            size_hint_x: 0.5
+                                            height: dp(48)
+                                            on_release: app.check_out()
+
+                                # 5. Leave Management Dashboard Card
+                                MDCard:
+                                    orientation: 'vertical'
+                                    padding: dp(12)
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: dp(225)
+                                    radius: [12,]
+                                    md_bg_color: 1, 1, 1, 1
+                                    elevation: 2
+                                    on_release: app.open_leave()
+
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        spacing: dp(8)
+                                        adaptive_height: True
+
+                                        MDIcon:
+                                            icon: 'briefcase-clock-outline'
+                                            theme_text_color: 'Custom'
+                                            text_color: 0.13, 0.40, 0.16, 1
+                                            font_size: '24sp'
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            adaptive_height: True
+
+                                            MDLabel:
+                                                text: 'Leave Management'
+                                                font_style: 'Subtitle1'
+                                                bold: True
+                                                adaptive_height: True
+
+                                            MDLabel:
+                                                text: 'Apply for leave, check balance and view history'
+                                                font_style: 'Caption'
+                                                theme_text_color: 'Secondary'
+                                                adaptive_height: True
+
+                                    MDSeparator:
+
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        spacing: dp(8)
+                                        size_hint_y: None
+                                        height: dp(42)
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            MDLabel:
+                                                text: 'Annual'
+                                                font_style: 'Caption'
+                                                halign: 'center'
+                                            MDLabel:
+                                                text: '20 days'
+                                                font_style: 'Subtitle2'
+                                                bold: True
+                                                halign: 'center'
+                                                theme_text_color: 'Custom'
+                                                text_color: 0.13, 0.40, 0.16, 1
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            MDLabel:
+                                                text: 'Sick'
+                                                font_style: 'Caption'
+                                                halign: 'center'
+                                            MDLabel:
+                                                text: '10 days'
+                                                font_style: 'Subtitle2'
+                                                bold: True
+                                                halign: 'center'
+                                                theme_text_color: 'Custom'
+                                                text_color: 0.13, 0.40, 0.16, 1
+
+                                        MDBoxLayout:
+                                            orientation: 'vertical'
+                                            MDLabel:
+                                                text: 'Compassionate'
+                                                font_style: 'Caption'
+                                                halign: 'center'
+                                            MDLabel:
+                                                text: '5 days'
+                                                font_style: 'Subtitle2'
+                                                bold: True
+                                                halign: 'center'
+                                                theme_text_color: 'Custom'
+                                                text_color: 0.13, 0.40, 0.16, 1
+
+                                    MDGridLayout:
+                                        cols: 3
+                                        spacing: dp(6)
+                                        size_hint_y: None
+                                        height: dp(48)
+
+                                        MDCard:
+                                            orientation: 'vertical'
+                                            padding: dp(4)
+                                            radius: [8,]
+                                            elevation: 1
+                                            MDLabel:
+                                                text: 'Pending Request'
+                                                halign: 'center'
+                                                font_style: 'Caption'
+                                            MDLabel:
+                                                id: leave_pending_count
+                                                text: '0'
+                                                halign: 'center'
+                                                bold: True
+                                                font_size: '18sp'
+                                                theme_text_color: 'Custom'
+                                                text_color: 0.85, 0.55, 0.05, 1
+
+                                        MDCard:
+                                            orientation: 'vertical'
+                                            padding: dp(4)
+                                            radius: [8,]
+                                            elevation: 1
+                                            MDLabel:
+                                                text: 'Approved Leave'
+                                                halign: 'center'
+                                                font_style: 'Caption'
+                                            MDLabel:
+                                                id: leave_approved_count
+                                                text: '0'
+                                                halign: 'center'
+                                                bold: True
+                                                font_size: '18sp'
+                                                theme_text_color: 'Custom'
+                                                text_color: 0.13, 0.40, 0.16, 1
+
+                                        MDCard:
+                                            orientation: 'vertical'
+                                            padding: dp(4)
+                                            radius: [8,]
+                                            elevation: 1
+                                            MDLabel:
+                                                text: 'Rejected Leave'
+                                                halign: 'center'
+                                                font_style: 'Caption'
+                                            MDLabel:
+                                                id: leave_rejected_count
+                                                text: '0'
+                                                halign: 'center'
+                                                bold: True
+                                                font_size: '18sp'
+                                                theme_text_color: 'Custom'
+                                                text_color: 0.80, 0.10, 0.10, 1
+
+                                    MDRaisedButton:
+                                        text: 'OPEN LEAVE MANAGEMENT'
+                                        icon: 'arrow-right'
+                                        size_hint_y: None
+                                        height: dp(40)
+                                        pos_hint: {'center_x': 0.5}
+                                        md_bg_color: 0.13, 0.40, 0.16, 1
+                                        on_release: app.open_leave()
+
+                                # 6. Monthly Attendance Summary Card
+                                MDCard:
+                                    orientation: 'vertical'
+                                    padding: dp(10)
+                                    spacing: dp(8)
+                                    size_hint_y: None
+                                    height: self.minimum_height
+                                    radius: [12,]
+                                    elevation: 2
+
+                                    MDBoxLayout:
+                                        orientation: 'horizontal'
+                                        spacing: dp(6)
+                                        adaptive_height: True
+                                        MDIcon:
+                                            icon: "chart-box-outline"
+                                            theme_text_color: "Custom"
+                                            text_color: 0.18, 0.49, 0.20, 1
+                                            font_size: "18sp"
+                                        MDLabel:
+                                            text: "Monthly Attendance Summary"
+                                            font_style: "Subtitle1"
+                                            bold: True
+                                            adaptive_height: True
+
+                                    MDSeparator:
+
+                                    MDGridLayout:
+                                        cols: 2
+                                        spacing: dp(8)
+                                        row_default_height: dp(28)
+                                        row_force_default: True
+                                        size_hint_y: None
+                                        height: self.minimum_height
+
+                                        MDLabel:
+                                            text: "Working Days (Mon-Fri):"
+                                            font_style: "Body2"
+                                        MDLabel:
+                                            id: total_work_days
+                                            text: "21 Days"
+                                            font_style: "Body2"
+                                            bold: True
+
+                                        MDLabel:
+                                            text: "Total Days Present:"
+                                            font_style: "Body2"
+                                        MDLabel:
+                                            id: total_days_present
+                                            text: "0 Days"
+                                            font_style: "Body2"
+                                            bold: True
+                                            theme_text_color: "Custom"
+                                            text_color: 0.1, 0.6, 0.2, 1
+
+                                        MDLabel:
+                                            text: "Total Days Absent:"
+                                            font_style: "Body2"
+                                        MDLabel:
+                                            id: total_days_absent
+                                            text: "1 Day"
+                                            font_style: "Body2"
+                                            bold: True
+                                            theme_text_color: "Custom"
+                                            text_color: 0.8, 0.1, 0.1, 1
+
+                                        MDLabel:
+                                            text: "Work Hours Today:"
+                                            font_style: "Body2"
+                                        MDLabel:
+                                            id: expected_hours_today
+                                            text: "9 Hours"
+                                            font_style: "Body2"
+                                            bold: True
+
+                                        MDLabel:
+                                            text: "Absence Rate:"
+                                            font_style: "Body2"
+                                        MDLabel:
+                                            id: absence_rate
+                                            text: "0.0%"
+                                            font_style: "Body2"
+                                            bold: True
+
+                                        MDLabel:
+                                            text: "Leave Balance:"
+                                            font_style: "Body2"
+                                        MDLabel:
+                                            id: leave_balance
+                                            text: "21 Days Remaining"
+                                            font_style: "Body2"
+                                            bold: True
+
+        # Left Navigation Drawer
+        MDNavigationDrawer:
+            id: nav_drawer
+            radius: (0, 16, 16, 0)
+            width: dp(310)
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                padding: [dp(12), dp(16), dp(12), dp(16)]
+                spacing: dp(10)
+
+                # Drawer Header Box
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    spacing: dp(8)
+                    adaptive_height: True
+                    padding: [dp(8), dp(4)]
+
+                    MDIcon:
+                        icon: "shield-account"
+                        theme_text_color: "Custom"
+                        text_color: 0.18, 0.49, 0.20, 1
+                        font_size: "32sp"
+                        pos_hint: {'center_y': 0.5}
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        adaptive_height: True
+                        pos_hint: {'center_y': 0.5}
+
+                        MDLabel:
+                            text: "ROHI Staff Portal"
+                            font_style: "H6"
+                            bold: True
+                            adaptive_height: True
+
+                        MDLabel:
+                            text: "Management System"
+                            font_style: "Caption"
+                            theme_text_color: "Secondary"
+                            adaptive_height: True
+
+                MDSeparator:
+
+                ScrollView:
+                    do_scroll_x: False
+                    do_scroll_y: True
+
+                    MDList:
+                        spacing: dp(4)
+
+                        OneLineIconListItem:
+                            text: "Dashboard"
+                            on_release:
+                                nav_drawer.set_state("close")
+                                app.open_dashboard()
+                            IconLeftWidget:
+                                icon: "view-dashboard-outline"
+
+                        OneLineIconListItem:
+                            text: "Staff Registration (Edit Profile)"
+                            on_release:
+                                nav_drawer.set_state("close")
+                                app.open_registration()
+                            IconLeftWidget:
+                                icon: "account-edit-outline"
+
+                        MDSeparator:
+
+                        # Attendance Module
+                        TwoLineIconListItem:
+                            text: "Attendance"
+                            secondary_text: "Daily Check In / Out & Timesheets"
+                            IconLeftWidget:
+                                icon: "calendar-clock-outline"
+
+                        OneLineIconListItem:
+                            text: "Attendance Reports"
+                            on_release:
+                                nav_drawer.set_state("close")
+                                app.open_reports()
+                            IconLeftWidget:
+                                icon: "calendar-month-outline"
+                        OneLineIconListItem:
+                            text: "Overtime Hours"
+                            IconLeftWidget:
+                                icon: "clock-plus-outline"
+                        OneLineIconListItem:
+                            text: "Timesheet Summary"
+                            on_release:
+                                nav_drawer.set_state("close")
+                                app.open_timesheet()
+                            IconLeftWidget:
+                                icon: "table-clock"
+                        OneLineIconListItem:
+                            text: "Export Attendance (PDF/Excel)"
+                            on_release:
+                                nav_drawer.set_state("close")
+                                app.open_reports()
+                            IconLeftWidget:
+                                icon: "file-export-outline"
+
+                        MDSeparator:
+
+                        # Leave Management Module
+                        TwoLineIconListItem:
+                            text: "Leave Management"
+                            secondary_text: "Requests, Balances & Approvals"
+                            on_release:
+                                nav_drawer.set_state("close")
+                                app.open_leave()
+                            IconLeftWidget:
+                                icon: "briefcase-clock-outline"
+
+                        MDSeparator:
+
+                        # Settings
+                        OneLineIconListItem:
+                            text: "Settings"
+                            on_release:
+                                nav_drawer.set_state("close")
+                                app.open_settings()
+                            IconLeftWidget:
+                                icon: "cog-outline"
+
+                        MDSeparator:
+
+                        # Logout Action
+                        OneLineIconListItem:
+                            text: "Logout"
+                            on_release:
+                                nav_drawer.set_state("close")
+                                app.logout()
+                            IconLeftWidget:
+                                icon: "logout-variant"

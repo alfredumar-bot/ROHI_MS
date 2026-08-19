@@ -1,0 +1,20 @@
+ROHI Attendance Pydroid Test v2.0
+
+1. GPS/Pydroid:
+- Uses pyjnius to obtain the active Android Activity in both Pydroid/Kivy and packaged APK contexts.
+- Runtime permission check/request uses the actual Android Activity.
+- Android LocationManager requests live GPS/network updates.
+- Last-known phone location fallback now accepts valid recent coordinates even when Android reports timestamp 0.
+- The office coordinate is NEVER used as the current device coordinate.
+- Borno: 11.797352, 13.143040
+- Adamawa HQ: 9.2781640, 12.432640
+- 100m geofence remains enforced.
+
+2. Google destinations:
+- Attendance, Timesheet and Leave Send buttons never open an email chooser.
+- The buttons use the configured destination link from Server Connection.
+- If an upload endpoint is configured, the XLSX is uploaded there.
+- If only a Google Sheet/Drive link is configured, the configured link is opened directly.
+- Registration immediate sync follows the same destination logic.
+
+3. Auto-sync remains every 3 minutes for all four report types.
