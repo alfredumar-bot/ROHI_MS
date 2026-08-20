@@ -339,29 +339,14 @@
                             height: dp(50)
 
                             MDRaisedButton:
-                                text: "EXPORT LEAVE REPORT (EXCEL)"
+                                text: "GENERATE REPORT"
                                 size_hint_x: 1
                                 md_bg_color: 0.13, 0.40, 0.16, 1
                                 on_release: app.export_leave_excel()
 
-                            MDIconButton:
-                                icon: "cloud-upload"
-                                md_bg_color: 0.13, 0.40, 0.16, 1
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
-                                on_release: app.send_leave_to_excel()
- 
-                            MDIconButton:
-                                icon: "email-outline"
-                                md_bg_color: 0.13, 0.40, 0.16, 1
-                                theme_text_color: "Custom"
-                                text_color: 1, 1, 1, 1
-                                tooltip_text: "Email generated Leave Report"
-                                on_release: app.email_leave_report()
-
-                        MDRaisedButton:
-                            text: "SEND LEAVE MANAGEMENT TO GOOGLE EXCEL"
-                            size_hint_x: 1
-                            md_bg_color: 0.13, 0.40, 0.16, 1
-                            on_release: app.send_leave_to_excel()
+                            MDRaisedButton:
+                                text: "DOWNLOAD"
+                                size_hint_x: 1
+                                md_bg_color: 0.09, 0.28, 0.11, 1
+                                on_release: app.download_leave_report()
 

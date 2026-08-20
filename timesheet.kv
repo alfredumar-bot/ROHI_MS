@@ -174,34 +174,20 @@
                         height: dp(50)
 
                         MDRaisedButton:
-                            text: "EXPORT TIMESHEET (EXCEL)"
+                            text: "GENERATE REPORT"
                             font_size: "16sp"
                             size_hint_x: 1
                             height: dp(50)
                             md_bg_color: 0, 0.6, 0.2, 1
                             on_release: app.export_timesheet_excel()
 
-                        MDIconButton:
-                            icon: "cloud-upload"
-                            md_bg_color: 0.13, 0.40, 0.16, 1
-                            theme_text_color: "Custom"
-                            text_color: 1, 1, 1, 1
-                            on_release: app.send_timesheet_to_excel()
- 
-                        MDIconButton:
-                            icon: "email-outline"
-                            md_bg_color: 0.13, 0.40, 0.16, 1
-                            theme_text_color: "Custom"
-                            text_color: 1, 1, 1, 1
-                            tooltip_text: "Email generated Timesheet"
-                            on_release: app.email_timesheet_export()
-
-                    MDRaisedButton:
-                        text: "SEND TIMESHEET TO GOOGLE EXCEL"
-                        size_hint_x: 1
-                        height: dp(50)
-                        md_bg_color: 0.13, 0.40, 0.16, 1
-                        on_release: app.send_timesheet_to_excel()
+                        MDRaisedButton:
+                            text: "DOWNLOAD"
+                            font_size: "16sp"
+                            size_hint_x: 1
+                            height: dp(50)
+                            md_bg_color: 0.09, 0.28, 0.11, 1
+                            on_release: app.download_timesheet()
 
                     MDLabel:
                         id: timesheet_status_label

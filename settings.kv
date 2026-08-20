@@ -168,14 +168,13 @@
 
                         Widget:
 
-                        MDIcon:
-                            icon: "palette-outline"
-                            theme_text_color: "Custom"
-                            text_color: 0.13, 0.40, 0.16, 0.6
-                            font_size: "12sp"
+                        Image:
+                            source: "gold_F_icon.png"
                             size_hint: None, None
                             size: dp(16), dp(16)
-                            valign: "middle"
+                            allow_stretch: True
+                            keep_ratio: True
+                            pos_hint: {"center_y": 0.5}
 
                         MDLabel:
                             text: "Designed by Fred Umar"
@@ -184,4 +183,4 @@
                             text_color: 0.13, 0.40, 0.16, 0.6
                             size_hint: None, None
                             size: self.texture_size
-                            valign: "middle"
+                            pos_hint: {"center_y": 0.5}

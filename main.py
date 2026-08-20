@@ -4067,24 +4067,25 @@ class ROHIAttendanceApp(MDApp):
             )
 
     def _get_download_dir(self):
-        """Resolve the phone's public Download folder so generated reports show up
-        where the user actually looks for downloaded files, instead of being
-        buried inside the app's private storage."""
+        """Resolve a private, always-writable folder for the GENERATE step to
+        build reports into. This is app-private storage (not the public
+        Downloads folder) - the separate DOWNLOAD button is what copies a
+        generated file into the phone's public Download folder afterwards."""
         if platform == "android":
             try:
                 from jnius import autoclass
-                Environment = autoclass('android.os.Environment')
-                download_dir = Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS
-                ).getAbsolutePath()
+                PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                activity = PythonActivity.mActivity
+                build_dir = activity.getExternalFilesDir(None).getAbsolutePath()
+                build_dir = os.path.join(build_dir, "generated_reports")
             except Exception:
-                logger.exception("Falling back to hardcoded Android Download path:")
-                download_dir = "/storage/emulated/0/Download"
+                logger.exception("Falling back to app private storage path:")
+                build_dir = os.path.join(APP_DIR, "generated_reports")
         else:
-            download_dir = os.path.join(os.path.expanduser("~"), "Downloads")
+            build_dir = os.path.join(os.path.expanduser("~"), "ROHI_Generated_Reports")
 
-        os.makedirs(download_dir, exist_ok=True)
-        return download_dir
+        os.makedirs(build_dir, exist_ok=True)
+        return build_dir
 
     def _show_report_status(self, message):
         if hasattr(self, 'reports_screen') and hasattr(self.reports_screen.ids, 'report_status_label'):
@@ -4229,6 +4230,133 @@ class ROHIAttendanceApp(MDApp):
             logger.exception("Could not share generated file through Android:")
             status_fn(f"Could not open email app: {e}")
             return False
+
+    def _open_file_via_android(self, filepath, status_fn):
+        """Copy a generated report/timesheet/leave file into the phone's public
+        Download folder (via MediaStore) and open it with Android's chooser so
+        the person can confirm it landed there. GENERATE only builds the file
+        into app-private storage; this is what actually gets it into the
+        Download folder the person sees in their Files app.
+        """
+        if not filepath or not os.path.exists(filepath):
+            status_fn("Generate the report first, then tap Download.")
+            return False
+        if platform != 'android':
+            status_fn(f"Saved (desktop build - no phone Download folder here): {filepath}")
+            return True
+
+        try:
+            from jnius import autoclass
+            Intent = autoclass('android.content.Intent')
+            Uri = autoclass('android.net.Uri')
+            BuildVersion = autoclass('android.os.Build$VERSION')
+            File = autoclass('java.io.File')
+
+            filename = os.path.basename(filepath)
+            lower = filename.lower()
+            if lower.endswith('.pdf'):
+                mime_type = 'application/pdf'
+            elif lower.endswith('.xlsx'):
+                mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            else:
+                mime_type = 'application/octet-stream'
+
+            activity = autoclass('org.kivy.android.PythonActivity').mActivity
+            resolver = activity.getContentResolver()
+            content_uri = None
+
+            # Android 10+ / API 29+: put a viewable copy in MediaStore Downloads
+            # and obtain a content:// URI that other apps can open.
+            if BuildVersion.SDK_INT >= 29:
+                MediaStore = autoclass('android.provider.MediaStore')
+                ContentValues = autoclass('android.content.ContentValues')
+                values = ContentValues()
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                values.put(MediaStore.MediaColumns.MIME_TYPE, mime_type)
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, 'Download/ROHI Attendance')
+                values.put(MediaStore.MediaColumns.IS_PENDING, 1)
+                collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+                content_uri = resolver.insert(collection, values)
+                if content_uri is None:
+                    raise RuntimeError('Android could not create a downloadable Downloads URI.')
+                output_stream = resolver.openOutputStream(content_uri, 'w')
+                if output_stream is None:
+                    raise RuntimeError('Android could not open the downloadable file.')
+                with open(filepath, 'rb') as source:
+                    while True:
+                        chunk = source.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        output_stream.write(chunk)
+                output_stream.close()
+                values_pending = ContentValues()
+                values_pending.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                resolver.update(content_uri, values_pending, None, None)
+            else:
+                # Older Android: the generated file is already in public
+                # Downloads. Use a MediaStore content URI where possible.
+                MediaStore = autoclass('android.provider.MediaStore')
+                MediaStoreFiles = autoclass('android.provider.MediaStore$Files')
+                ContentValues = autoclass('android.content.ContentValues')
+                values = ContentValues()
+                values.put(MediaStore.MediaColumns.DATA, filepath)
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                values.put(MediaStore.MediaColumns.MIME_TYPE, mime_type)
+                content_uri = resolver.insert(MediaStoreFiles.getContentUri('external'), values)
+                if content_uri is None:
+                    content_uri = Uri.fromFile(File(filepath))
+
+            # NOTE: Intent.createChooser() (the static method) is avoided here
+            # deliberately - it previously crashed on-device with a jnius
+            # "no static methods called createChooser" error. Building an
+            # ACTION_CHOOSER intent by hand (same pattern as email sharing
+            # above) is the proven-working approach in this codebase.
+            view_intent = Intent(Intent.ACTION_VIEW)
+            view_intent.setDataAndType(content_uri, mime_type)
+            view_intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+            chooser = Intent(Intent.ACTION_CHOOSER)
+            chooser.putExtra(Intent.EXTRA_INTENT, view_intent)
+            chooser.putExtra(Intent.EXTRA_TITLE, 'Open Downloaded File')
+            chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            activity.startActivity(chooser)
+            status_fn(f"Downloaded to phone Download folder: {filename}")
+            return True
+        except Exception as e:
+            logger.exception("Could not download file to phone Download folder:")
+            status_fn(f"Could not download file: {e}")
+            return False
+
+    def download_attendance_report(self):
+        """DOWNLOAD button for the Reports screen - copies the already-generated
+        Attendance report into the phone's public Download folder. Tap
+        Generate first."""
+        path = getattr(self, '_last_export_path', None)
+        if not path or not os.path.exists(path) or "attendance" not in os.path.basename(path).lower():
+            self._set_report_send_status("Tap GENERATE REPORT first, then Download.", False)
+            return False
+        return self._open_file_via_android(path, self._set_report_send_status)
+
+    def download_timesheet(self):
+        """DOWNLOAD button for the Timesheet screen - copies the already-generated
+        Timesheet export into the phone's public Download folder. Tap
+        Generate first."""
+        path = getattr(self, '_last_export_path', None)
+        if not path or not os.path.exists(path) or 'timesheet' not in os.path.basename(path).lower():
+            self._set_timesheet_send_status("Tap GENERATE REPORT first, then Download.", False)
+            return False
+        return self._open_file_via_android(path, self._set_timesheet_send_status)
+
+    def download_leave_report(self):
+        """DOWNLOAD button for the Leave screen - copies the already-generated
+        Leave report into the phone's public Download folder. Tap Generate
+        first."""
+        path = getattr(self, '_last_export_path', None)
+        if not path or not os.path.exists(path) or 'leave_report' not in os.path.basename(path).lower():
+            self._set_leave_send_status("Tap GENERATE REPORT first, then Download.", False)
+            return False
+        return self._open_file_via_android(path, self._set_leave_send_status)
 
     def email_last_export(self, status_fn=None):
         """Open Android's share/email composer with the generated Attendance XLSX attached."""
