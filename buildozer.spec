@@ -41,7 +41,7 @@ android.permissions = CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,READ_EX
 # makes it a foreground service with a persistent low-priority notification,
 # which is required on modern Android so the OS doesn't kill it under Doze /
 # battery optimization.
-services = Reminder:service_reminder.py,foreground
+services = Reminder:service_reminder.py:foreground
 
 android.api = 34
 android.minapi = 21
