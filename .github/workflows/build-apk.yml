@@ -75,6 +75,12 @@ jobs:
         run: |
           echo "$ROHI_KEYSTORE_BASE64" | base64 -d > rohi-release-key.keystore
 
+      - name: Upload keystore for inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: keystore-debug
+          path: rohi-release-key.keystore
+
       - name: Build signed release APK
         env:
           P4A_RELEASE_KEYSTORE: ${{ github.workspace }}/rohi-release-key.keystore
