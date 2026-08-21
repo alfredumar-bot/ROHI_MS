@@ -3851,9 +3851,13 @@ class ROHIAttendanceApp(MDApp):
         self._last_export_path = filepath
         return filepath
 
-    def _export_attendance_template(self, rows, title_suffix="Selected"):
-        """Export attendance using the uploaded attendance workbook template."""
-        reports_dir = self._get_download_dir()
+    def _export_attendance_template(self, rows, title_suffix="Selected", directory=None):
+        """Export attendance using the uploaded attendance workbook template.
+
+        ``directory`` lets a caller build the workbook somewhere other than
+        the visible phone Downloads folder (used for "Send to Google" so it
+        never has to write to Downloads or touch the export status)."""
+        reports_dir = directory or self._get_download_dir()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filepath = os.path.join(reports_dir, f"Rohi_Attendance_Report_{_safe_filename(title_suffix)}_{timestamp}.xlsx")
         self._copy_template("Rohi_Attendance Report.xlsx", filepath)
@@ -3880,13 +3884,19 @@ class ROHIAttendanceApp(MDApp):
             self._encrypt_xlsx_open_password(filepath, REPORT_EXPORT_PASSWORD)
         except Exception:
             logger.exception("Could not password-protect attendance template export.")
-        self._last_export_path = filepath
+        if directory is None:
+            self._last_export_path = filepath
         return filepath
 
-    def _export_timesheet_template(self, for_sync=False):
+    def _export_timesheet_template(self, for_sync=False, directory=None):
         """Populate the exact uploaded Corrected Timesheet.xlsx template.
         Column widths, row heights, logo, thick/thin borders and merged cells
-        remain from the supplied workbook."""
+        remain from the supplied workbook.
+
+        ``directory`` lets a caller build the workbook somewhere other than
+        the visible phone Downloads folder (e.g. a private temp folder used
+        only to build a file for "Send to Google", without ever writing to
+        Downloads or touching the on-screen export status)."""
         rows = getattr(self, "_last_timesheet_rows", [])
         if not rows:
             return None
@@ -3900,7 +3910,7 @@ class ROHIAttendanceApp(MDApp):
         state_office = str(user[13]) if user and len(user) > 13 and user[13] else "-"
         nationality = str(user[6]) if user and len(user) > 6 and user[6] else "-"
 
-        reports_dir = self._get_download_dir()
+        reports_dir = directory or self._get_download_dir()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         if for_sync:
             filename = f"ROHI_Timesheet_AutoSync_{_safe_filename(fullname)}_{month_name}_{year}.xlsx"
@@ -3952,7 +3962,8 @@ class ROHIAttendanceApp(MDApp):
         ws["A46"] = "Employee Signature: ____________________________"
         ws["A49"] = "Supervisor Signature: ____________________________"
         wb.save(filepath)
-        self._last_export_path = filepath
+        if directory is None:
+            self._last_export_path = filepath
         return filepath
 
     def _build_excel(self, filepath, headers, data_rows, sheet_title="Report", password=None):
@@ -4067,25 +4078,40 @@ class ROHIAttendanceApp(MDApp):
             )
 
     def _get_download_dir(self):
-        """Resolve a private, always-writable folder for the GENERATE step to
-        build reports into. This is app-private storage (not the public
-        Downloads folder) - the separate DOWNLOAD button is what copies a
-        generated file into the phone's public Download folder afterwards."""
+        """Resolve the phone's public Download folder so generated reports show up
+        where the user actually looks for downloaded files, instead of being
+        buried inside the app's private storage."""
         if platform == "android":
             try:
                 from jnius import autoclass
-                PythonActivity = autoclass('org.kivy.android.PythonActivity')
-                activity = PythonActivity.mActivity
-                build_dir = activity.getExternalFilesDir(None).getAbsolutePath()
-                build_dir = os.path.join(build_dir, "generated_reports")
+                Environment = autoclass('android.os.Environment')
+                download_dir = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS
+                ).getAbsolutePath()
             except Exception:
-                logger.exception("Falling back to app private storage path:")
-                build_dir = os.path.join(APP_DIR, "generated_reports")
+                logger.exception("Falling back to hardcoded Android Download path:")
+                download_dir = "/storage/emulated/0/Download"
         else:
-            build_dir = os.path.join(os.path.expanduser("~"), "ROHI_Generated_Reports")
+            download_dir = os.path.join(os.path.expanduser("~"), "Downloads")
 
-        os.makedirs(build_dir, exist_ok=True)
-        return build_dir
+        os.makedirs(download_dir, exist_ok=True)
+        return download_dir
+
+    def _get_temp_sync_dir(self):
+        """Private, hidden folder used only to build a workbook in memory-like
+        fashion for "Send to Google". Never the phone's visible Downloads
+        folder, and never surfaced to the user - it's deleted right after
+        the upload finishes either way."""
+        temp_dir = os.path.join(self.user_data_dir, "temp_send_to_google")
+        os.makedirs(temp_dir, exist_ok=True)
+        return temp_dir
+
+    def _cleanup_temp_sync_file(self, filepath):
+        try:
+            if filepath and os.path.exists(filepath) and self._get_temp_sync_dir() in filepath:
+                os.remove(filepath)
+        except Exception:
+            logger.exception("Could not remove temporary send-to-Google file.")
 
     def _show_report_status(self, message):
         if hasattr(self, 'reports_screen') and hasattr(self.reports_screen.ids, 'report_status_label'):
@@ -4230,133 +4256,6 @@ class ROHIAttendanceApp(MDApp):
             logger.exception("Could not share generated file through Android:")
             status_fn(f"Could not open email app: {e}")
             return False
-
-    def _open_file_via_android(self, filepath, status_fn):
-        """Copy a generated report/timesheet/leave file into the phone's public
-        Download folder (via MediaStore) and open it with Android's chooser so
-        the person can confirm it landed there. GENERATE only builds the file
-        into app-private storage; this is what actually gets it into the
-        Download folder the person sees in their Files app.
-        """
-        if not filepath or not os.path.exists(filepath):
-            status_fn("Generate the report first, then tap Download.")
-            return False
-        if platform != 'android':
-            status_fn(f"Saved (desktop build - no phone Download folder here): {filepath}")
-            return True
-
-        try:
-            from jnius import autoclass
-            Intent = autoclass('android.content.Intent')
-            Uri = autoclass('android.net.Uri')
-            BuildVersion = autoclass('android.os.Build$VERSION')
-            File = autoclass('java.io.File')
-
-            filename = os.path.basename(filepath)
-            lower = filename.lower()
-            if lower.endswith('.pdf'):
-                mime_type = 'application/pdf'
-            elif lower.endswith('.xlsx'):
-                mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            else:
-                mime_type = 'application/octet-stream'
-
-            activity = autoclass('org.kivy.android.PythonActivity').mActivity
-            resolver = activity.getContentResolver()
-            content_uri = None
-
-            # Android 10+ / API 29+: put a viewable copy in MediaStore Downloads
-            # and obtain a content:// URI that other apps can open.
-            if BuildVersion.SDK_INT >= 29:
-                MediaStore = autoclass('android.provider.MediaStore')
-                ContentValues = autoclass('android.content.ContentValues')
-                values = ContentValues()
-                values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                values.put(MediaStore.MediaColumns.MIME_TYPE, mime_type)
-                values.put(MediaStore.MediaColumns.RELATIVE_PATH, 'Download/ROHI Attendance')
-                values.put(MediaStore.MediaColumns.IS_PENDING, 1)
-                collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
-                content_uri = resolver.insert(collection, values)
-                if content_uri is None:
-                    raise RuntimeError('Android could not create a downloadable Downloads URI.')
-                output_stream = resolver.openOutputStream(content_uri, 'w')
-                if output_stream is None:
-                    raise RuntimeError('Android could not open the downloadable file.')
-                with open(filepath, 'rb') as source:
-                    while True:
-                        chunk = source.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        output_stream.write(chunk)
-                output_stream.close()
-                values_pending = ContentValues()
-                values_pending.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                resolver.update(content_uri, values_pending, None, None)
-            else:
-                # Older Android: the generated file is already in public
-                # Downloads. Use a MediaStore content URI where possible.
-                MediaStore = autoclass('android.provider.MediaStore')
-                MediaStoreFiles = autoclass('android.provider.MediaStore$Files')
-                ContentValues = autoclass('android.content.ContentValues')
-                values = ContentValues()
-                values.put(MediaStore.MediaColumns.DATA, filepath)
-                values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                values.put(MediaStore.MediaColumns.MIME_TYPE, mime_type)
-                content_uri = resolver.insert(MediaStoreFiles.getContentUri('external'), values)
-                if content_uri is None:
-                    content_uri = Uri.fromFile(File(filepath))
-
-            # NOTE: Intent.createChooser() (the static method) is avoided here
-            # deliberately - it previously crashed on-device with a jnius
-            # "no static methods called createChooser" error. Building an
-            # ACTION_CHOOSER intent by hand (same pattern as email sharing
-            # above) is the proven-working approach in this codebase.
-            view_intent = Intent(Intent.ACTION_VIEW)
-            view_intent.setDataAndType(content_uri, mime_type)
-            view_intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-            chooser = Intent(Intent.ACTION_CHOOSER)
-            chooser.putExtra(Intent.EXTRA_INTENT, view_intent)
-            chooser.putExtra(Intent.EXTRA_TITLE, 'Open Downloaded File')
-            chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            activity.startActivity(chooser)
-            status_fn(f"Downloaded to phone Download folder: {filename}")
-            return True
-        except Exception as e:
-            logger.exception("Could not download file to phone Download folder:")
-            status_fn(f"Could not download file: {e}")
-            return False
-
-    def download_attendance_report(self):
-        """DOWNLOAD button for the Reports screen - copies the already-generated
-        Attendance report into the phone's public Download folder. Tap
-        Generate first."""
-        path = getattr(self, '_last_export_path', None)
-        if not path or not os.path.exists(path) or "attendance" not in os.path.basename(path).lower():
-            self._set_report_send_status("Tap GENERATE REPORT first, then Download.", False)
-            return False
-        return self._open_file_via_android(path, self._set_report_send_status)
-
-    def download_timesheet(self):
-        """DOWNLOAD button for the Timesheet screen - copies the already-generated
-        Timesheet export into the phone's public Download folder. Tap
-        Generate first."""
-        path = getattr(self, '_last_export_path', None)
-        if not path or not os.path.exists(path) or 'timesheet' not in os.path.basename(path).lower():
-            self._set_timesheet_send_status("Tap GENERATE REPORT first, then Download.", False)
-            return False
-        return self._open_file_via_android(path, self._set_timesheet_send_status)
-
-    def download_leave_report(self):
-        """DOWNLOAD button for the Leave screen - copies the already-generated
-        Leave report into the phone's public Download folder. Tap Generate
-        first."""
-        path = getattr(self, '_last_export_path', None)
-        if not path or not os.path.exists(path) or 'leave_report' not in os.path.basename(path).lower():
-            self._set_leave_send_status("Tap GENERATE REPORT first, then Download.", False)
-            return False
-        return self._open_file_via_android(path, self._set_leave_send_status)
 
     def email_last_export(self, status_fn=None):
         """Open Android's share/email composer with the generated Attendance XLSX attached."""
@@ -4538,8 +4437,14 @@ class ROHIAttendanceApp(MDApp):
             logger.exception("Leave request submission failed")
             ids.leave_message.text = f"Could not submit request: {exc}"
 
-    def export_leave_excel(self):
-        """Export the logged-in staff member's leave history and balances to Excel."""
+    def export_leave_excel(self, directory=None, silent=False):
+        """Export the logged-in staff member's leave history and balances to Excel.
+
+        ``directory`` lets a caller build the workbook somewhere other than
+        the visible phone Downloads folder. ``silent`` skips updating the
+        on-screen export status and the auto-sync queue — used when this is
+        only building a temporary file for "Send to Google", not a real
+        export the user asked to keep."""
         try:
             if not self.current_user:
                 return None
@@ -4561,7 +4466,7 @@ class ROHIAttendanceApp(MDApp):
             if not data_rows:
                 data_rows.append(["No leave requests", "-", "-", 0, "-", "-", "-", "-"])
 
-            reports_dir = self._get_download_dir()
+            reports_dir = directory or self._get_download_dir()
             fullname = str(self.current_user[1]).replace(" ", "_") if len(self.current_user) > 1 else "staff"
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filepath = os.path.join(reports_dir, f"Leave_Report_{fullname}_{timestamp}.xlsx")
@@ -4569,6 +4474,8 @@ class ROHIAttendanceApp(MDApp):
                 filepath, headers, data_rows,
                 sheet_title="Leave Management", password=REPORT_EXPORT_PASSWORD
             )
+            if silent:
+                return filepath
             self._last_export_path = filepath
             self._queue_excel_auto_sync(filepath, "leave")
             if hasattr(self.leave_screen.ids, 'leave_message'):
@@ -4577,7 +4484,7 @@ class ROHIAttendanceApp(MDApp):
             return filepath
         except Exception as exc:
             logger.exception("Error exporting leave report")
-            if hasattr(self.leave_screen.ids, 'leave_message'):
+            if not silent and hasattr(self.leave_screen.ids, 'leave_message'):
                 self.leave_screen.ids.leave_message.text = f"Could not export leave report: {exc}"
             return None
 
@@ -4675,7 +4582,7 @@ class ROHIAttendanceApp(MDApp):
                 self._set_staff_registration_sync_status(message, False)
         threading.Thread(target=worker, daemon=True).start()
 
-    def _send_excel_now(self, filepath, report_type, status_callback=None):
+    def _send_excel_now(self, filepath, report_type, status_callback=None, cleanup_path=None):
         """Send a generated workbook immediately.
 
         If an actual HTTP/Apps-Script upload endpoint is configured, the XLSX
@@ -4684,6 +4591,10 @@ class ROHIAttendanceApp(MDApp):
         "Not Connected". A share/folder URL cannot itself receive an XLSX POST,
         so the UI clearly tells the user that an upload endpoint is still needed
         for true unattended file transfer.
+
+        ``cleanup_path``, when given, is deleted once the upload attempt
+        finishes (used for the private temp file built just for "Send to
+        Google" so nothing is left behind on the phone).
         """
         if not filepath or not os.path.exists(filepath):
             message = "Generate the Excel file first."
@@ -4706,6 +4617,8 @@ class ROHIAttendanceApp(MDApp):
             )
             if status_callback:
                 Clock.schedule_once(lambda dt: status_callback(message, False), 0)
+            if cleanup_path:
+                self._cleanup_temp_sync_file(cleanup_path)
             return False
 
         def worker():
@@ -4715,6 +4628,8 @@ class ROHIAttendanceApp(MDApp):
                 _save_excel_sync_config(self._excel_sync_state)
             if status_callback:
                 Clock.schedule_once(lambda dt: status_callback(message, ok), 0)
+            if cleanup_path:
+                self._cleanup_temp_sync_file(cleanup_path)
         threading.Thread(target=worker, daemon=True).start()
         return True
 
@@ -4727,18 +4642,86 @@ class ROHIAttendanceApp(MDApp):
         except Exception:
             pass
 
-    def send_attendance_report_to_excel(self):
-        """Send the already-generated attendance workbook to Google.
+    def _build_selected_report_for_sync(self):
+        """Build the currently-selected report type (Attendance - Selected
+        Period / Full History / Staff Registration) straight into a private
+        temp folder, without ever touching the visible Downloads folder or
+        the on-screen export status. Used only by "Send to Google" so it can
+        send immediately without the user pressing "Generate Report" first."""
+        if not self.current_user:
+            return None
+        ids = self.reports_screen.ids
+        label = ids.report_type_field.text.strip() if hasattr(ids, 'report_type_field') else ""
+        type_map = dict(self.REPORT_TYPE_OPTIONS)
+        report_type = type_map.get(label) or "attendance"
 
-        This never generates the Excel report on its own — the user must
-        press "Generate Report" first. If no matching report has been
-        generated yet, show a clear message instead of creating one.
+        temp_dir = self._get_temp_sync_dir()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        fullname_safe = str(self.current_user[1]).replace(" ", "_") if len(self.current_user) > 1 else "staff"
+
+        if report_type == "staff_registration":
+            # No temp-only variant exists for the staff template export; it
+            # always writes its own filename, so build straight into temp_dir.
+            filepath = os.path.join(temp_dir, f"ROHI_Staff_on_IMS_{timestamp}.xlsx")
+            self._copy_template("Rohi_Staff on IMS.xlsx", filepath)
+            wb = openpyxl.load_workbook(filepath)
+            ws = wb.active
+            headers, data_rows = self._staff_registration_headers_and_rows()
+            template_headers = [ws.cell(3, c).value for c in range(1, ws.max_column + 1)]
+            index_map = {str(h).strip().lower(): i for i, h in enumerate(headers)}
+            for r in range(4, ws.max_row + 1):
+                for c in range(1, ws.max_column + 1):
+                    ws.cell(r, c).value = None
+            from copy import copy as _copy
+            template_row_height = ws.row_dimensions[4].height
+            template_styles = {c: _copy(ws.cell(4, c)._style) for c in range(1, ws.max_column + 1)}
+            template_alignment = {c: _copy(ws.cell(4, c).alignment) for c in range(1, ws.max_column + 1)}
+            template_number_formats = {c: ws.cell(4, c).number_format for c in range(1, ws.max_column + 1)}
+            for r_idx, row in enumerate(data_rows, start=4):
+                if r_idx > ws.max_row:
+                    ws.insert_rows(r_idx)
+                if template_row_height is not None:
+                    ws.row_dimensions[r_idx].height = template_row_height
+                for c_idx, h in enumerate(template_headers, start=1):
+                    cell = ws.cell(r_idx, c_idx)
+                    if r_idx > 4:
+                        cell._style = _copy(template_styles.get(c_idx))
+                        cell.alignment = _copy(template_alignment.get(c_idx))
+                        cell.number_format = template_number_formats.get(c_idx, "General")
+                    pos = index_map.get(str(h).strip().lower())
+                    cell.value = row[pos] if pos is not None and pos < len(row) else "-"
+            wb.save(filepath)
+            try:
+                self._encrypt_xlsx_open_password(filepath, REPORT_EXPORT_PASSWORD)
+            except Exception:
+                logger.exception("Could not password-protect staff template export.")
+            return filepath
+        elif report_type == "attendance_history":
+            email_val = str(self.current_user[20]) if len(self.current_user) > 20 else ""
+            rows = self._fetch_attendance_records(email_val)
+            return self._export_attendance_template(rows, title_suffix="Full_History", directory=temp_dir)
+        else:  # "attendance" - currently selected report period
+            rows = getattr(self, '_last_report_rows', [])
+            return self._export_attendance_template(rows, title_suffix="Selected", directory=temp_dir)
+
+    def send_attendance_report_to_excel(self):
+        """Send a fresh attendance workbook straight to Google.
+
+        This does not require "Generate Report" to be pressed first, and it
+        does not run the export flow in the background either — it builds
+        the workbook privately just for this upload, sends it, then removes
+        the temp file. "Generate Report" still works exactly as before for
+        anyone who wants the file saved to their phone.
         """
-        path = getattr(self, "_last_export_path", None)
-        if not path or not os.path.exists(path) or "attendance" not in os.path.basename(path).lower():
-            self._set_report_send_status("Generate the report first, then send it.", False)
+        try:
+            path = self._build_selected_report_for_sync()
+        except Exception:
+            logger.exception("Could not build attendance report for Send to Google.")
+            path = None
+        if not path or not os.path.exists(path):
+            self._set_report_send_status("Could not build the report to send.", False)
             return
-        self._send_excel_now(path, "attendance", self._set_report_send_status)
+        self._send_excel_now(path, "attendance", self._set_report_send_status, cleanup_path=path)
 
     @mainthread
     def _set_timesheet_send_status(self, message, ok=True):
@@ -4750,17 +4733,24 @@ class ROHIAttendanceApp(MDApp):
             pass
 
     def send_timesheet_to_excel(self):
-        """Send the already-exported timesheet workbook to Google.
+        """Send a fresh timesheet workbook straight to Google.
 
-        This never exports the Excel timesheet on its own — the user must
-        press "Export Timesheet Excel" first. If no matching export exists
-        yet, show a clear message instead of creating one.
+        This does not require "Export Timesheet (Excel)" to be pressed
+        first, and it does not run the export flow in the background
+        either — it builds the workbook privately just for this upload,
+        sends it, then removes the temp file. The export button still
+        works exactly as before for anyone who wants the file saved to
+        their phone.
         """
-        path = getattr(self, "_last_export_path", None)
-        if not path or not os.path.exists(path) or "timesheet" not in os.path.basename(path).lower():
-            self._set_timesheet_send_status("Export the timesheet first, then send it.", False)
+        try:
+            path = self._export_timesheet_template(directory=self._get_temp_sync_dir())
+        except Exception:
+            logger.exception("Could not build timesheet for Send to Google.")
+            path = None
+        if not path or not os.path.exists(path):
+            self._set_timesheet_send_status("Could not build the timesheet to send.", False)
             return
-        self._send_excel_now(path, "timesheet", self._set_timesheet_send_status)
+        self._send_excel_now(path, "timesheet", self._set_timesheet_send_status, cleanup_path=path)
 
     @mainthread
     def _set_leave_send_status(self, message, ok=True):
@@ -4772,17 +4762,24 @@ class ROHIAttendanceApp(MDApp):
             pass
 
     def send_leave_to_excel(self):
-        """Send the already-exported leave report workbook to Google.
+        """Send a fresh leave report workbook straight to Google.
 
-        This never exports the Excel leave report on its own — the user
-        must press "Export Leave Report Excel" first. If no matching export
-        exists yet, show a clear message instead of creating one.
+        This does not require "Export Leave Report (Excel)" to be pressed
+        first, and it does not run the export flow in the background
+        either — it builds the workbook privately just for this upload,
+        sends it, then removes the temp file. The export button still
+        works exactly as before for anyone who wants the file saved to
+        their phone.
         """
-        path = getattr(self, "_last_export_path", None)
-        if not path or not os.path.exists(path) or "leave_report" not in os.path.basename(path).lower():
-            self._set_leave_send_status("Export the leave report first, then send it.", False)
+        try:
+            path = self.export_leave_excel(directory=self._get_temp_sync_dir(), silent=True)
+        except Exception:
+            logger.exception("Could not build leave report for Send to Google.")
+            path = None
+        if not path or not os.path.exists(path):
+            self._set_leave_send_status("Could not build the leave report to send.", False)
             return
-        self._send_excel_now(path, "leave", self._set_leave_send_status)
+        self._send_excel_now(path, "leave", self._set_leave_send_status, cleanup_path=path)
 
     def _queue_excel_auto_sync(self, filepath, report_type):
         """Send an exported workbook to the configured server endpoint without

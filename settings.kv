@@ -158,29 +158,46 @@
                             md_bg_color: 0.8, 0.1, 0.1, 1
                             on_release: app.confirm_reset_database()
 
-                    # ---------------- Footer credit ----------------
-                    MDBoxLayout:
-                        orientation: 'horizontal'
-                        spacing: dp(6)
-                        size_hint_y: None
-                        height: dp(24)
-                        padding: [0, dp(6), dp(6), 0]
+            # ---------------- Footer credit (fixed at bottom, centered) ----------------
+            MDBoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(6)
+                size_hint_y: None
+                height: dp(36)
+                padding: [0, dp(6), 0, dp(10)]
 
-                        Widget:
+                Widget:
 
-                        Image:
-                            source: "gold_F_icon.png"
-                            size_hint: None, None
-                            size: dp(16), dp(16)
-                            allow_stretch: True
-                            keep_ratio: True
-                            pos_hint: {"center_y": 0.5}
+                MDBoxLayout:
+                    size_hint: None, None
+                    size: dp(18), dp(18)
+                    pos_hint: {'center_y': 0.5}
 
-                        MDLabel:
-                            text: "Designed by Fred Umar"
-                            font_size: "9sp"
-                            theme_text_color: "Custom"
-                            text_color: 0.13, 0.40, 0.16, 0.6
-                            size_hint: None, None
-                            size: self.texture_size
-                            pos_hint: {"center_y": 0.5}
+                    canvas.before:
+                        Color:
+                            rgba: 0.83, 0.68, 0.21, 1
+                        Ellipse:
+                            pos: self.pos
+                            size: self.size
+
+                    MDLabel:
+                        text: "F"
+                        bold: True
+                        font_size: "11sp"
+                        theme_text_color: "Custom"
+                        text_color: 0, 0, 0, 1
+                        halign: "center"
+                        valign: "middle"
+
+                MDLabel:
+                    text: "Designed by Fred Umar"
+                    bold: True
+                    font_size: "14sp"
+                    theme_text_color: "Custom"
+                    text_color: 0, 0, 0, 1
+                    size_hint: None, None
+                    size: self.texture_size
+                    valign: "middle"
+                    pos_hint: {'center_y': 0.5}
+
+                Widget:
