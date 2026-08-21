@@ -158,7 +158,7 @@
                             md_bg_color: 0.8, 0.1, 0.1, 1
                             on_release: app.confirm_reset_database()
 
-            # ---------------- Footer credit (fixed at bottom, centered) ----------------
+            # ---------------- Footer credit (fixed at bottom, centered, single line) ----------------
             MDBoxLayout:
                 orientation: 'horizontal'
                 spacing: dp(6)
@@ -188,6 +188,9 @@
                         text_color: 0, 0, 0, 1
                         halign: "center"
                         valign: "middle"
+                        adaptive_size: True
+                        text_size: None, None
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
                 MDLabel:
                     text: "Designed by Fred Umar"
@@ -195,9 +198,10 @@
                     font_size: "14sp"
                     theme_text_color: "Custom"
                     text_color: 0, 0, 0, 1
-                    size_hint: None, None
-                    size: self.texture_size
+                    halign: "left"
                     valign: "middle"
+                    adaptive_size: True
+                    text_size: None, None
                     pos_hint: {'center_y': 0.5}
 
                 Widget:
